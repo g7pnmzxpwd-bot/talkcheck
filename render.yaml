@@ -9,8 +9,6 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
-      - key: DATA_GO_KR_API_KEY
-        sync: false
       - key: TAX_INVOICE_HANDOFF_MODE
         value: local
       - key: TAX_INVOICE_HANDOFF_API_TOKEN
