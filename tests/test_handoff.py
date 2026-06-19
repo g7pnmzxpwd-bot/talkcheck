@@ -59,6 +59,13 @@ class HandoffApiTest(unittest.TestCase):
         handoff_store.clear()
         self.client = TestClient(mcp.streamable_http_app())
 
+    def test_root_serves_demo_ui(self) -> None:
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("톡체크 · 세금계산서 발행 준비", response.text)
+        self.assertEqual(response.headers["cache-control"], "no-store")
+
     def test_create_load_update_and_prepare_draft(self) -> None:
         payload = {
             "requested_action": "create_draft_only",

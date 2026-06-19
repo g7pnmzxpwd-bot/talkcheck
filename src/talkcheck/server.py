@@ -234,6 +234,11 @@ async def handoff_page(request: Request) -> Response:
     return FileResponse(index_file, headers={"Cache-Control": "no-store"})
 
 
+@mcp.custom_route("/", methods=["GET"], include_in_schema=False)
+async def demo_page(request: Request) -> Response:
+    return await handoff_page(request)
+
+
 @mcp.custom_route("/assets/{asset_path:path}", methods=["GET"], include_in_schema=False)
 async def handoff_asset(request: Request) -> Response:
     assets_root = (handoff_ui_dist / "assets").resolve()
