@@ -137,6 +137,16 @@ def _parse_date(value: str) -> str | None:
         return None
 
 
+def _official_status(official: dict[str, Any]) -> str:
+    business_status = official.get("business_status")
+    if business_status:
+        return str(business_status)
+    return {
+        "not_configured": "국세청 조회 연결 필요",
+        "error": "국세청 조회 실패",
+    }.get(str(official.get("status") or ""), "조회 결과 없음")
+
+
 class KakaoSkillAdapter:
     def __init__(
         self,
@@ -280,7 +290,7 @@ class KakaoSkillAdapter:
             conversation.business_number = result["business_number"]
             conversation.business_check = result
         official = result.get("official_lookup") or {}
-        status = official.get("business_status") or official.get("status") or "조회 결과 없음"
+        status = _official_status(official)
         tax_type = official.get("tax_type") or "과세유형 정보 없음"
         return _card_response(
             "사업자 확인 결과",
@@ -308,7 +318,7 @@ class KakaoSkillAdapter:
             conversation.business_name = extracted.get("business_name")
             conversation.business_check = business_check
         official = business_check.get("official_lookup") or {}
-        status = official.get("business_status") or official.get("status") or "조회 결과 없음"
+        status = _official_status(official)
         name = extracted.get("business_name") or "상호 미인식"
         number = business_check.get("formatted_business_number") or format_business_number(
             str(extracted.get("business_number") or "")

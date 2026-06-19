@@ -61,6 +61,13 @@ class FakeInvoiceService:
         }
 
 
+class NotConfiguredBusinessService(FakeBusinessService):
+    async def check_number(self, business_number: str) -> dict[str, Any]:
+        result = await super().check_number(business_number)
+        result["official_lookup"] = {"status": "not_configured"}
+        return result
+
+
 def payload(
     utterance: str,
     *,
@@ -112,6 +119,21 @@ class KakaoSkillAdapterTest(unittest.IsolatedAsyncioTestCase):
             response["template"]["quickReplies"][0]["extra"]["talkcheck_action"],
             "start_invoice",
         )
+
+    async def test_lookup_does_not_expose_internal_not_configured_status(self) -> None:
+        adapter = KakaoSkillAdapter(NotConfiguredBusinessService(), self.invoice)
+
+        response = await adapter.handle(
+            payload(
+                "사업자 조회하기",
+                action="lookup_business",
+                extra={"business_number": "1018116406"},
+            )
+        )
+
+        description = response["template"]["outputs"][0]["textCard"]["description"]
+        self.assertIn("국세청 조회 연결 필요", description)
+        self.assertNotIn("not_configured", description)
 
     async def test_secure_image_is_scanned_after_consent(self) -> None:
         secure = json.dumps(

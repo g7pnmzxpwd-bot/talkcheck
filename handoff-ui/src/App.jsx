@@ -120,9 +120,8 @@ export function App() {
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState("");
-  const [handoffOpen, setHandoffOpen] = useState(false);
+  const [showIssueDemo, setShowIssueDemo] = useState(window.location.hash === "#issue-demo");
   const editorRef = useRef(null);
-  const handoffRef = useRef(null);
 
   useEffect(() => {
     if (!referenceId) return undefined;
@@ -161,8 +160,10 @@ export function App() {
   }, [editing]);
 
   useEffect(() => {
-    if (handoffOpen && handoffRef.current && !handoffRef.current.open) handoffRef.current.showModal();
-  }, [handoffOpen]);
+    const handleHashChange = () => setShowIssueDemo(window.location.hash === "#issue-demo");
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
 
   function openEditor(field) {
     setEditing(field);
@@ -244,7 +245,7 @@ export function App() {
       return;
     }
     if (!referenceId) {
-      setHandoffOpen(true);
+      window.location.hash = "issue-demo";
       return;
     }
     setActionState("preparing");
@@ -254,19 +255,13 @@ export function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ draft: apiDraft() }),
       });
-      setHandoffOpen(true);
+      window.location.hash = "issue-demo";
     } catch (error) {
       if (error.status === 404) setLoadState("missing");
       else setToast("발행 확인 화면을 준비하지 못했어요. 다시 시도해 주세요.");
     } finally {
       setActionState("idle");
     }
-  }
-
-  function closeHandoff() {
-    handoffRef.current?.close();
-    setHandoffOpen(false);
-    setToast(referenceId ? "외부 발행 확인 전 단계까지 준비했어요." : "발행 확인 화면 연결 전 데모까지 완료했어요.");
   }
 
   const officialLookup = businessCheck.official_lookup || {};
@@ -289,7 +284,7 @@ export function App() {
           <ArrowLeft weight="regular" />
         </button>
         <strong className="brand">톡체크</strong>
-        {loadState === "ready" ? (
+        {loadState === "ready" && !showIssueDemo ? (
           <button className="top-action" type="button" disabled={actionState !== "idle"} onClick={saveDraft}>
             {actionState === "saving" ? "저장 중" : "임시저장"}
           </button>
@@ -306,6 +301,22 @@ export function App() {
               <ArrowClockwise />다시 시도
             </button>
           )}
+        </section>
+      ) : showIssueDemo ? (
+        <section className="issue-demo" aria-labelledby="issue-demo-title">
+          <span className="demo-badge">DEMO</span>
+          <div className="handoff-icon"><ShieldCheck weight="fill" /></div>
+          <h1 id="issue-demo-title">세금계산서 발행 전 최종 확인</h1>
+          <p className="issue-demo-lead">실제 발행 시스템을 연결했을 때 마지막으로 확인하는 단계예요.</p>
+          <dl className="issue-demo-document">
+            <div><dt>공급받는자</dt><dd>{invoiceContext.recipientName}</dd></div>
+            <div><dt>사업자등록번호</dt><dd>{businessNumber}</dd></div>
+            <div><dt>품목</dt><dd>{draft.itemName}</dd></div>
+            <div><dt>작성일</dt><dd>{formatDate(draft.supplyDate)}</dd></div>
+            <div className="issue-demo-total"><dt>최종 확인 금액</dt><dd>{formatMoney(totalAmount)}</dd></div>
+          </dl>
+          <p className="demo-note"><Info />현재는 연동 전 데모로, 실제 발행이나 국세청 전송은 이루어지지 않습니다.</p>
+          <button className="primary-button" type="button" onClick={() => window.history.back()}>초안으로 돌아가기</button>
         </section>
       ) : <form className="page" onSubmit={submitHandoff} noValidate>
         <section className="intro" aria-labelledby="page-title">
@@ -407,15 +418,6 @@ export function App() {
             <button className="primary-button sheet-save" type="submit">변경사항 저장</button>
           </form>
         )}
-      </dialog>
-
-      <dialog className="sheet handoff-sheet" ref={handoffRef} onClose={() => setHandoffOpen(false)}>
-        <div className="handoff-icon"><ShieldCheck weight="fill" /></div>
-        <h2>발행 확인 화면을 준비했어요</h2>
-        <p>실제 ASP 연동 후에는 암호화된 외부 화면에서 인증하고 최종 발행하게 됩니다.</p>
-        <div className="handoff-summary"><span>최종 확인 금액</span><strong>{formatMoney(totalAmount)}</strong></div>
-        <p className="demo-note"><Info />현재는 연동 전 데모로, 세금계산서가 발행되지 않습니다.</p>
-        <button className="primary-button sheet-save" type="button" onClick={closeHandoff}>확인</button>
       </dialog>
 
       {toast && <div className="toast" role="status">{toast}</div>}

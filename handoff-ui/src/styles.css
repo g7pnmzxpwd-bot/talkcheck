@@ -514,10 +514,6 @@ label:focus-visible {
   margin-top: 20px;
 }
 
-.handoff-sheet {
-  text-align: center;
-}
-
 .handoff-icon {
   display: grid;
   width: 48px;
@@ -534,33 +530,95 @@ label:focus-visible {
   height: 27px;
 }
 
-.handoff-sheet > p {
-  margin: 9px 4px 0;
+.issue-demo {
+  min-height: calc(100vh - 46px);
+  padding: 34px 18px 24px;
+  text-align: center;
+}
+
+.demo-badge {
+  display: inline-block;
+  margin-bottom: 16px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #5d5200;
+  background: #fff8c5;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+}
+
+.issue-demo h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.045em;
+}
+
+.issue-demo-lead {
+  margin: 8px 0 24px;
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
-.handoff-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 18px;
-  padding: 14px 0;
-  border-block: 1px solid var(--line);
+.issue-demo-document {
+  margin: 0;
+  padding: 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.issue-demo-document div {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.issue-demo-document div:last-child {
+  border-bottom: 0;
+}
+
+.issue-demo-document dt,
+.issue-demo-document dd {
+  margin: 0;
   font-size: 13px;
 }
 
-.handoff-summary strong {
-  font-size: 19px;
+.issue-demo-document dt {
+  color: var(--muted);
 }
 
-.handoff-sheet .demo-note {
+.issue-demo-document dd {
+  font-weight: 560;
+  text-align: right;
+}
+
+.issue-demo-document .issue-demo-total {
+  align-items: center;
+  padding: 15px 0;
+}
+
+.issue-demo-total dt {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.issue-demo-total dd {
+  font-size: 20px;
+  font-weight: 780;
+}
+
+.issue-demo > .demo-note {
   display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  text-align: left;
+  gap: 7px;
+  margin: 16px 2px 20px;
+  color: var(--muted);
   font-size: 12px;
+  line-height: 1.55;
+  text-align: left;
 }
 
 .demo-note svg {
