@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: talkcheck-mcp
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATA_GO_KR_API_KEY
+        sync: false
+      - key: TAX_INVOICE_HANDOFF_MODE
+        value: local
+      - key: TAX_INVOICE_HANDOFF_API_TOKEN
+        generateValue: true
+      - key: OCR_PROVIDER
+        value: tesseract
+      - key: OCR_LANGUAGES
+        value: kor+eng

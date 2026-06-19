@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "talkcheck"
+version = "0.1.0"
+description = "MCP server for Korean business registration checks and tax invoice handoff"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.28,<1",
+  "mcp[cli]>=1.27,<2",
+  "pillow>=11,<13",
+  "pytesseract>=0.3.13,<1",
+]
+
+[project.scripts]
+talkcheck = "talkcheck.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/talkcheck"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
