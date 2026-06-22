@@ -24,6 +24,8 @@ COPY --from=handoff-ui /ui/dist ./handoff-ui/dist
 RUN pip install --no-cache-dir .
 
 ENV HANDOFF_UI_DIST=/app/handoff-ui/dist \
+    HANDOFF_PUBLIC_BASE_URL=https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io \
+    TAX_INVOICE_HANDOFF_MODE=local \
     PORT=8080
 
 EXPOSE 8080

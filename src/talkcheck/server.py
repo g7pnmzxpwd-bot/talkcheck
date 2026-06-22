@@ -61,9 +61,9 @@ business_service = BusinessCheckService(
 handoff_api_url = os.getenv("TAX_INVOICE_HANDOFF_API_URL", "").strip()
 handoff_api_token = os.getenv("TAX_INVOICE_HANDOFF_API_TOKEN", "").strip()
 handoff_mode = os.getenv("TAX_INVOICE_HANDOFF_MODE", "").strip().lower()
-handoff_public_base_url = os.getenv(
+handoff_public_base_url = os.getenv("RENDER_EXTERNAL_URL", "").strip() or os.getenv(
     "HANDOFF_PUBLIC_BASE_URL", ""
-).strip() or os.getenv("RENDER_EXTERNAL_URL", "").strip() or (
+).strip() or (
     f"http://127.0.0.1:{os.getenv('PORT', '8000')}"
 )
 handoff_store = HandoffStore()
