@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import io
+import json
 import os
 import shutil
 import socket
@@ -14,6 +15,8 @@ from urllib.parse import urljoin, urlparse
 
 import httpx
 import pytesseract
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client
 from PIL import Image, UnidentifiedImageError
 
 from talkcheck.domain import BusinessCertificate, TaxInvoiceDraft
@@ -122,6 +125,71 @@ class NtsBusinessRegistryProvider:
             "verification_status": item.get("valid"),
             "verification_message": item.get("valid_msg"),
         }
+
+
+class RemoteMcpBusinessRegistryProvider:
+    """Delegates official lookup to a TalkCheck MCP server that owns the API key."""
+
+    def __init__(self, mcp_url: str) -> None:
+        self.mcp_url = mcp_url
+
+    async def _call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        try:
+            async with streamable_http_client(self.mcp_url) as (read, write, _):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    result = await session.call_tool(name, arguments)
+        except Exception as exc:
+            raise ProviderUnavailable("국세청 조회를 완료하지 못했습니다.") from exc
+
+        for content in result.content:
+            text = getattr(content, "text", None)
+            if not text:
+                continue
+            try:
+                payload = json.loads(text)
+            except ValueError:
+                continue
+            if isinstance(payload, dict):
+                return payload
+        raise ProviderUnavailable("국세청 조회 응답을 해석하지 못했습니다.")
+
+    async def check_status(self, business_number: str) -> dict[str, Any]:
+        result = await self._call_tool(
+            "check_business_registration",
+            {"business_number": business_number},
+        )
+        official_lookup = result.get("official_lookup")
+        if not isinstance(official_lookup, dict) or official_lookup.get("status"):
+            raise ProviderUnavailable("국세청 조회를 완료하지 못했습니다.")
+        return official_lookup
+
+    async def validate_certificate(self, certificate: BusinessCertificate) -> dict[str, Any]:
+        if not certificate.opening_date or not certificate.representative_name:
+            return {
+                "verification_status": "not_requested",
+                "verification_message": "개업일자와 대표자명이 모두 필요합니다.",
+            }
+
+        labels = (
+            ("등록번호", certificate.business_number),
+            ("개업연월일", certificate.opening_date),
+            ("성명", certificate.representative_name),
+            ("상호(법인명)", certificate.business_name),
+            ("법인등록번호", certificate.corporate_number),
+            ("업태", certificate.business_sector),
+            ("종목", certificate.business_type),
+            ("사업장 소재지", certificate.business_address),
+        )
+        ocr_text = "\n".join(f"{label} {value}" for label, value in labels if value)
+        result = await self._call_tool(
+            "scan_business_certificate",
+            {"image_url": "", "ocr_text": ocr_text},
+        )
+        verification = result.get("certificate_verification")
+        if not isinstance(verification, dict):
+            raise ProviderUnavailable("사업자등록증 진위확인을 완료하지 못했습니다.")
+        return verification
 
 
 class DisabledOcrProvider:

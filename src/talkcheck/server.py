@@ -22,6 +22,7 @@ from talkcheck.providers import (
     HttpInvoiceHandoffProvider,
     LocalInvoiceHandoffProvider,
     NtsBusinessRegistryProvider,
+    RemoteMcpBusinessRegistryProvider,
     TesseractOcrProvider,
 )
 from talkcheck.services import BusinessCheckService, TaxInvoiceService, build_tax_invoice_draft
@@ -45,8 +46,16 @@ ocr_provider = (
     else DisabledOcrProvider()
 )
 
+nts_registry = NtsBusinessRegistryProvider()
+registry_provider = (
+    nts_registry
+    if nts_registry.api_key
+    else RemoteMcpBusinessRegistryProvider(
+        os.getenv("NTS_FALLBACK_MCP_URL", "https://talkcheck-mcp.onrender.com/mcp")
+    )
+)
 business_service = BusinessCheckService(
-    registry=NtsBusinessRegistryProvider(),
+    registry=registry_provider,
     ocr=ocr_provider,
 )
 handoff_api_url = os.getenv("TAX_INVOICE_HANDOFF_API_URL", "").strip()

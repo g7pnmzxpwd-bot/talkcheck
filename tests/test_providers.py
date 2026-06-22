@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import AsyncMock
 
 import httpx
 
@@ -9,6 +10,7 @@ from talkcheck.providers import (
     HttpInvoiceHandoffProvider,
     NtsBusinessRegistryProvider,
     OcrProcessingError,
+    RemoteMcpBusinessRegistryProvider,
     _validate_remote_image_url,
 )
 
@@ -66,6 +68,28 @@ class RemoteImageUrlTest(unittest.IsolatedAsyncioTestCase):
     async def test_rejects_loopback_url(self) -> None:
         with self.assertRaises(OcrProcessingError):
             await _validate_remote_image_url("https://127.0.0.1/image.jpg")
+
+
+class RemoteMcpBusinessRegistryProviderTest(unittest.IsolatedAsyncioTestCase):
+    async def test_returns_official_lookup_from_remote_tool(self) -> None:
+        provider = RemoteMcpBusinessRegistryProvider("https://example.test/mcp")
+        provider._call_tool = AsyncMock(
+            return_value={
+                "official_lookup": {
+                    "business_number": "1018116406",
+                    "business_status": "계속사업자",
+                    "business_status_code": "01",
+                }
+            }
+        )
+
+        result = await provider.check_status("1018116406")
+
+        self.assertEqual(result["business_status"], "계속사업자")
+        provider._call_tool.assert_awaited_once_with(
+            "check_business_registration",
+            {"business_number": "1018116406"},
+        )
 
 
 class HttpInvoiceHandoffProviderTest(unittest.IsolatedAsyncioTestCase):
