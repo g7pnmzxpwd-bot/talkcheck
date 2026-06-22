@@ -6,7 +6,8 @@ COPY handoff-ui/package.json handoff-ui/package-lock.json ./
 RUN npm ci
 
 COPY handoff-ui/ ./
-RUN npm run build
+ARG HANDOFF_UI_BASE=/
+RUN npm run build -- --base "$HANDOFF_UI_BASE"
 
 
 FROM python:3.12-slim

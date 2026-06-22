@@ -1,6 +1,9 @@
 services:
   talkcheck:
-    build: .
+    build:
+      context: .
+      args:
+        HANDOFF_UI_BASE: /talkcheck/
     container_name: talkcheck
     restart: unless-stopped
     env_file:

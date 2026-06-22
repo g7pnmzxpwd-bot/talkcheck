@@ -45,6 +45,11 @@ const fieldMeta = {
 };
 
 const currency = new Intl.NumberFormat("ko-KR");
+const appBasePath = new URL(import.meta.env.BASE_URL, window.location.origin).pathname.replace(/\/$/, "");
+
+function appUrl(path) {
+  return `${appBasePath}${path}`;
+}
 
 function draftFromRecord(record) {
   return {
@@ -65,8 +70,12 @@ function invoiceContextFromRecord(record) {
 }
 
 function getReferenceId() {
-  const match = window.location.pathname.match(/^\/handoff\/([^/]+)$/);
-  return match && match[1] !== "demo" ? decodeURIComponent(match[1]) : "";
+  const prefix = `${appBasePath}/handoff/`;
+  if (!window.location.pathname.startsWith(prefix)) return "";
+  const referenceId = window.location.pathname.slice(prefix.length);
+  return referenceId && !referenceId.includes("/") && referenceId !== "demo"
+    ? decodeURIComponent(referenceId)
+    : "";
 }
 
 async function requestJson(url, options) {
@@ -127,7 +136,7 @@ export function App() {
     if (!referenceId) return undefined;
     let cancelled = false;
     setLoadState("loading");
-    requestJson(`/api/handoffs/${encodeURIComponent(referenceId)}`)
+    requestJson(appUrl(`/api/handoffs/${encodeURIComponent(referenceId)}`))
       .then((record) => {
         if (cancelled) return;
         setDraft(draftFromRecord(record));
@@ -209,7 +218,7 @@ export function App() {
     setActionState("saving");
     try {
       if (referenceId) {
-        await requestJson(`/api/handoffs/${encodeURIComponent(referenceId)}`, {
+        await requestJson(appUrl(`/api/handoffs/${encodeURIComponent(referenceId)}`), {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ draft: apiDraft() }),
@@ -250,7 +259,7 @@ export function App() {
     }
     setActionState("preparing");
     try {
-      await requestJson(`/api/handoffs/${encodeURIComponent(referenceId)}/prepare`, {
+      await requestJson(appUrl(`/api/handoffs/${encodeURIComponent(referenceId)}/prepare`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ draft: apiDraft() }),
