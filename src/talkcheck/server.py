@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 from starlette.requests import Request
 from starlette.responses import FileResponse, JSONResponse, Response
 
@@ -72,25 +73,79 @@ handoff_ui_dist = Path(
         str(Path(__file__).resolve().parents[2] / "handoff-ui" / "dist"),
     )
 )
+playmcp_tool_timeout_seconds = float(os.getenv("PLAYMCP_TOOL_TIMEOUT_SECONDS", "2.8"))
 
 
-@mcp.tool()
+async def _run_playmcp_tool(awaitable):
+    try:
+        return await asyncio.wait_for(awaitable, timeout=playmcp_tool_timeout_seconds)
+    except TimeoutError as exc:
+        raise RuntimeError(
+            "TalkCheck(톡체크) could not complete the request within 3 seconds. Please retry."
+        ) from exc
+
+
+@mcp.tool(
+    title="Check Korean business registration",
+    description=(
+        "TalkCheck(톡체크) validates a Korean business registration number and returns "
+        "its current official National Tax Service status and tax type. Use this for "
+        "factual verification only; it does not score or recommend a business."
+    ),
+    annotations=ToolAnnotations(
+        title="Check Korean business registration",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
+)
 async def check_business_registration(business_number: str) -> dict[str, Any]:
     """Check the format and current official NTS status of a Korean business number."""
-    return await business_service.check_number(business_number)
+    return await _run_playmcp_tool(business_service.check_number(business_number))
 
 
-@mcp.tool()
+@mcp.tool(
+    title="Scan Korean business certificate",
+    description=(
+        "TalkCheck(톡체크) extracts fields from a Korean business registration certificate "
+        "using a public HTTPS image URL or OCR text, then verifies the extracted facts "
+        "against official National Tax Service data without making a risk judgment."
+    ),
+    annotations=ToolAnnotations(
+        title="Scan Korean business certificate",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
+)
 async def scan_business_certificate(image_url: str = "", ocr_text: str | None = None) -> dict[str, Any]:
     """Extract a Korean business certificate and return official facts without a risk judgment.
 
     Use image_url when the host can pass the uploaded image URL. During development,
     ocr_text may contain text already extracted by the host model or an OCR service.
     """
-    return await business_service.scan_certificate(image_url=image_url, ocr_text=ocr_text)
+    return await _run_playmcp_tool(
+        business_service.scan_certificate(image_url=image_url, ocr_text=ocr_text)
+    )
 
 
-@mcp.tool()
+@mcp.tool(
+    title="Prepare tax invoice confirmation",
+    description=(
+        "TalkCheck(톡체크) validates recipient details and creates a standard Korean tax "
+        "invoice draft for an external confirmation screen. This tool never issues or "
+        "transmits a tax invoice and always requires explicit user confirmation."
+    ),
+    annotations=ToolAnnotations(
+        title="Prepare tax invoice confirmation",
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
 async def prepare_tax_invoice_handoff(
     recipient_business_number: str,
     recipient_name: str,
@@ -107,22 +162,25 @@ async def prepare_tax_invoice_handoff(
     This tool never issues or transmits a tax invoice. All monetary and tax fields
     must be provided by the user and confirmed in the external ASP flow.
     """
-    business_check = await business_service.check_number(recipient_business_number)
-    business_check["business_name"] = recipient_name.strip()
-    business_check["representative_name"] = (
-        recipient_representative_name.strip() if recipient_representative_name else None
-    )
-    return await invoice_service.prepare_handoff(
-        recipient_business_number=recipient_business_number,
-        recipient_name=recipient_name,
-        supply_date=supply_date,
-        item_name=item_name,
-        supply_amount=supply_amount,
-        tax_amount=tax_amount,
-        purpose=purpose,
-        recipient_email=recipient_email,
-        business_check=business_check,
-    )
+    async def prepare() -> dict[str, Any]:
+        business_check = await business_service.check_number(recipient_business_number)
+        business_check["business_name"] = recipient_name.strip()
+        business_check["representative_name"] = (
+            recipient_representative_name.strip() if recipient_representative_name else None
+        )
+        return await invoice_service.prepare_handoff(
+            recipient_business_number=recipient_business_number,
+            recipient_name=recipient_name,
+            supply_date=supply_date,
+            item_name=item_name,
+            supply_amount=supply_amount,
+            tax_amount=tax_amount,
+            purpose=purpose,
+            recipient_email=recipient_email,
+            business_check=business_check,
+        )
+
+    return await _run_playmcp_tool(prepare())
 
 
 def _draft_from_payload(payload: dict[str, Any]):

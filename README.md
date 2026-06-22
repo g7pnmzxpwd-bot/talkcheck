@@ -107,6 +107,27 @@ TAX_INVOICE_HANDOFF_MODE=local uv run talkcheck
 Render가 제공하는 `RENDER_EXTERNAL_URL`을 확인 화면의 공개 주소로 자동 사용합니다.
 Blueprint 적용 시 `DATA_GO_KR_API_KEY`만 비밀 환경변수로 입력하면 됩니다.
 
+## Agentic Player 10 예선 제출
+
+공모전 제출 경로는 카카오채널 Skill이 아니라 PlayMCP의 Remote MCP 연결입니다.
+제출용 서버는 PlayMCP in KC에서 이 저장소의 `Dockerfile`을 Git 소스 빌드하고,
+발급된 Endpoint의 `/mcp` 주소를 PlayMCP 개발자 콘솔에 등록합니다.
+
+1. PlayMCP in KC에서 비공개 Git 저장소 URL과 branch/ref를 입력합니다.
+2. 저장소 루트의 `Dockerfile`로 서버를 빌드합니다.
+3. 발급된 Endpoint URL 뒤에 `/mcp`를 붙여 PlayMCP에서 정보를 불러옵니다.
+4. 먼저 임시 등록하고 AI 채팅에서 도구 선택과 인자 연결을 시험합니다.
+5. 테스트 완료 후 심사를 요청하고, 승인되면 전체 공개로 전환합니다.
+
+도구 호출은 `PLAYMCP_TOOL_TIMEOUT_SECONDS`로 제한하며 기본값은 2.8초입니다.
+모든 도구는 PlayMCP 필수 annotations를 명시하고 실제 발행 없이 조회와 초안
+준비만 수행합니다. 실제 세금계산서 발행과 Kakao Tools Widget은 예선 범위에
+포함하지 않습니다.
+
+PlayMCP in KC 공개 가이드에는 런타임 비밀 환경변수 입력 방법이 명시되어 있지
+않습니다. `DATA_GO_KR_API_KEY`를 이미지나 Git 저장소에 포함하지 말고, 배포 화면의
+비밀 환경변수 지원 여부를 확인한 뒤 입력해야 합니다.
+
 ## 테스트
 
 ```bash
