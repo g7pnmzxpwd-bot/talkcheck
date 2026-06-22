@@ -23,8 +23,9 @@ COPY --from=handoff-ui /ui/dist ./handoff-ui/dist
 
 RUN pip install --no-cache-dir .
 
-ENV HANDOFF_UI_DIST=/app/handoff-ui/dist
+ENV HANDOFF_UI_DIST=/app/handoff-ui/dist \
+    PORT=8080
 
-EXPOSE 8000
+EXPOSE 8080
 
 CMD ["talkcheck"]
