@@ -51,7 +51,7 @@ registry_provider = (
     nts_registry
     if nts_registry.api_key
     else RemoteMcpBusinessRegistryProvider(
-        os.getenv("NTS_FALLBACK_MCP_URL", "https://talkcheck-mcp.onrender.com/mcp")
+        os.getenv("NTS_FALLBACK_MCP_URL", "https://risk.moodwave.kr/talkcheck/mcp")
     )
 )
 business_service = BusinessCheckService(
