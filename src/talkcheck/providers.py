@@ -15,8 +15,6 @@ from urllib.parse import urljoin, urlparse
 
 import httpx
 import pytesseract
-from mcp import ClientSession
-from mcp.client.streamable_http import streamable_http_client
 from PIL import Image, UnidentifiedImageError
 
 from talkcheck.domain import BusinessCertificate, TaxInvoiceDraft
@@ -130,20 +128,42 @@ class NtsBusinessRegistryProvider:
 class RemoteMcpBusinessRegistryProvider:
     """Delegates official lookup to a TalkCheck MCP server that owns the API key."""
 
-    def __init__(self, mcp_url: str) -> None:
+    def __init__(
+        self,
+        mcp_url: str,
+        timeout_seconds: float = 2.5,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self.mcp_url = mcp_url
+        self.timeout_seconds = timeout_seconds
+        self.transport = transport
 
     async def _call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         try:
-            async with streamable_http_client(self.mcp_url) as (read, write, _):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    result = await session.call_tool(name, arguments)
-        except Exception as exc:
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
+                response = await client.post(
+                    self.mcp_url,
+                    headers={"Accept": "application/json, text/event-stream"},
+                    json={
+                        "jsonrpc": "2.0",
+                        "id": "talkcheck-proxy",
+                        "method": "tools/call",
+                        "params": {"name": name, "arguments": arguments},
+                    },
+                )
+                response.raise_for_status()
+                rpc_response = response.json()
+        except (httpx.HTTPError, ValueError) as exc:
             raise ProviderUnavailable("국세청 조회를 완료하지 못했습니다.") from exc
 
-        for content in result.content:
-            text = getattr(content, "text", None)
+        result = rpc_response.get("result") or {}
+        if result.get("isError"):
+            raise ProviderUnavailable("국세청 조회를 완료하지 못했습니다.")
+        for content in result.get("content") or []:
+            text = content.get("text") if isinstance(content, dict) else None
             if not text:
                 continue
             try:

@@ -1,3 +1,4 @@
+import json
 import unittest
 from unittest.mock import AsyncMock
 
@@ -71,6 +72,43 @@ class RemoteImageUrlTest(unittest.IsolatedAsyncioTestCase):
 
 
 class RemoteMcpBusinessRegistryProviderTest(unittest.IsolatedAsyncioTestCase):
+    async def test_calls_remote_tool_with_one_stateless_request(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            payload = json.loads(request.content)
+            self.assertEqual(payload["method"], "tools/call")
+            self.assertEqual(payload["params"]["name"], "check_business_registration")
+            return httpx.Response(
+                200,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": "talkcheck-proxy",
+                    "result": {
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(
+                                    {
+                                        "official_lookup": {
+                                            "business_number": "1018116406",
+                                            "business_status": "계속사업자",
+                                        }
+                                    }
+                                ),
+                            }
+                        ]
+                    },
+                },
+            )
+
+        provider = RemoteMcpBusinessRegistryProvider(
+            "https://example.test/mcp",
+            transport=httpx.MockTransport(handler),
+        )
+
+        result = await provider.check_status("1018116406")
+
+        self.assertEqual(result["business_status"], "계속사업자")
+
     async def test_returns_official_lookup_from_remote_tool(self) -> None:
         provider = RemoteMcpBusinessRegistryProvider("https://example.test/mcp")
         provider._call_tool = AsyncMock(
