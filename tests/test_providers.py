@@ -17,6 +17,38 @@ from talkcheck.providers import (
 
 
 class NtsBusinessRegistryProviderTest(unittest.IsolatedAsyncioTestCase):
+    async def test_retries_one_temporary_http_failure(self) -> None:
+        attempts = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise httpx.ReadTimeout("temporary timeout", request=request)
+            return httpx.Response(
+                200,
+                json={
+                    "data": [
+                        {
+                            "b_no": "1018116406",
+                            "b_stt": "계속사업자",
+                            "b_stt_cd": "01",
+                        }
+                    ]
+                },
+            )
+
+        provider = NtsBusinessRegistryProvider(
+            api_key="test-key",
+            max_attempts=2,
+            transport=httpx.MockTransport(handler),
+        )
+
+        result = await provider.check_status("1018116406")
+
+        self.assertEqual(result["business_status"], "계속사업자")
+        self.assertEqual(attempts, 2)
+
     async def test_maps_status_response_to_factual_fields(self) -> None:
         def handler(request: httpx.Request) -> httpx.Response:
             self.assertEqual(request.url.params["serviceKey"], "test-key")

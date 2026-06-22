@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 from datetime import date, datetime, timezone
 from typing import Any
@@ -159,23 +160,25 @@ class BusinessCheckService:
                 "checked_at": _checked_at(),
             }
 
-        result = {
+        async def verify_certificate() -> dict[str, Any]:
+            try:
+                return await self.registry.validate_certificate(certificate)
+            except ProviderNotConfigured as exc:
+                return {"status": "not_configured", "message": str(exc)}
+            except ProviderUnavailable as exc:
+                return {"status": "temporarily_unavailable", "message": str(exc)}
+
+        business_check, certificate_verification = await asyncio.gather(
+            self.check_number(certificate.business_number),
+            verify_certificate(),
+        )
+        return {
             "processing_status": "extracted",
             "extracted": certificate.to_dict(),
-            "business_check": await self.check_number(certificate.business_number),
-            "certificate_verification": None,
+            "business_check": business_check,
+            "certificate_verification": certificate_verification,
             "checked_at": _checked_at(),
         }
-        try:
-            result["certificate_verification"] = await self.registry.validate_certificate(certificate)
-        except ProviderNotConfigured as exc:
-            result["certificate_verification"] = {"status": "not_configured", "message": str(exc)}
-        except ProviderUnavailable as exc:
-            result["certificate_verification"] = {
-                "status": "temporarily_unavailable",
-                "message": str(exc),
-            }
-        return result
 
 
 class TaxInvoiceService:

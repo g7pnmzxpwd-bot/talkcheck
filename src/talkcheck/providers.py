@@ -59,7 +59,8 @@ class NtsBusinessRegistryProvider:
         api_key: str | None = None,
         status_url: str | None = None,
         validate_url: str | None = None,
-        timeout_seconds: float = 15,
+        timeout_seconds: float | None = None,
+        max_attempts: int | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("DATA_GO_KR_API_KEY", "")).strip()
@@ -69,7 +70,12 @@ class NtsBusinessRegistryProvider:
         self.validate_url = validate_url or os.getenv(
             "NTS_VALIDATE_API_URL", "https://api.odcloud.kr/api/nts-businessman/v1/validate"
         )
-        self.timeout_seconds = timeout_seconds
+        self.timeout_seconds = timeout_seconds if timeout_seconds is not None else float(
+            os.getenv("NTS_API_TIMEOUT_SECONDS", "15")
+        )
+        self.max_attempts = max_attempts if max_attempts is not None else int(
+            os.getenv("NTS_API_MAX_ATTEMPTS", "1")
+        )
         self.transport = transport
 
     def _require_api_key(self) -> None:
@@ -78,13 +84,19 @@ class NtsBusinessRegistryProvider:
 
     async def _post(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
         self._require_api_key()
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout_seconds, transport=self.transport) as client:
-                response = await client.post(url, params={"serviceKey": self.api_key}, json=payload)
-                response.raise_for_status()
-                return response.json()
-        except (httpx.HTTPError, ValueError) as exc:
-            raise ProviderUnavailable("국세청 조회를 완료하지 못했습니다.") from exc
+        last_error: Exception | None = None
+        for _ in range(self.max_attempts):
+            try:
+                async with httpx.AsyncClient(
+                    timeout=self.timeout_seconds,
+                    transport=self.transport,
+                ) as client:
+                    response = await client.post(url, params={"serviceKey": self.api_key}, json=payload)
+                    response.raise_for_status()
+                    return response.json()
+            except (httpx.HTTPError, ValueError) as exc:
+                last_error = exc
+        raise ProviderUnavailable("국세청 조회를 완료하지 못했습니다.") from last_error
 
     async def check_status(self, business_number: str) -> dict[str, Any]:
         payload = await self._post(self.status_url, {"b_no": [business_number]})
