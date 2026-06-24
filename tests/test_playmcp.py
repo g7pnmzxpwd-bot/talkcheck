@@ -17,14 +17,17 @@ class SlowBusinessService:
 
 
 class PlayMcpCompatibilityTest(unittest.IsolatedAsyncioTestCase):
-    def test_tools_include_required_annotations_and_service_name(self) -> None:
+    def test_tools_include_required_annotations_without_chat_branding(self) -> None:
         tools = mcp._tool_manager.list_tools()
 
         self.assertEqual(len(tools), 3)
         for tool in tools:
             self.assertRegex(tool.name, re.compile(r"^[A-Za-z0-9_-]{1,128}$"))
             self.assertNotIn("kakao", tool.name.lower())
-            self.assertIn("TalkCheck(톡체크)", tool.description)
+            self.assertNotIn("TalkCheck", tool.description)
+            self.assertNotIn("톡체크", tool.description)
+            self.assertNotIn("KakaoTalk", tool.description)
+            self.assertNotIn("카카오톡", tool.description)
             self.assertIsNotNone(tool.annotations)
             assert tool.annotations is not None
             self.assertIsNotNone(tool.annotations.title)

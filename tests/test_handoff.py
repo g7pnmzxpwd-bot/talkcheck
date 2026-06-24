@@ -63,7 +63,7 @@ class HandoffApiTest(unittest.TestCase):
         response = self.client.get("/")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn("톡체크 · 세금계산서 발행 준비", response.text)
+        self.assertIn("사업자 확인 도우미 · 세금계산서 발행 준비", response.text)
         self.assertEqual(response.headers["cache-control"], "no-store")
 
     def test_create_load_update_and_prepare_draft(self) -> None:

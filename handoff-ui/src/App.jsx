@@ -292,7 +292,7 @@ export function App() {
         <button className="icon-button" type="button" aria-label="뒤로 가기" onClick={() => window.history.back()}>
           <ArrowLeft weight="regular" />
         </button>
-        <strong className="brand">톡체크</strong>
+        <strong className="brand">사업자 확인 도우미</strong>
         {loadState === "ready" && !showIssueDemo ? (
           <button className="top-action" type="button" disabled={actionState !== "idle"} onClick={saveDraft}>
             {actionState === "saving" ? "저장 중" : "임시저장"}
