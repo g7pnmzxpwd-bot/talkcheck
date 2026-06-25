@@ -97,9 +97,9 @@ async def _run_playmcp_tool(awaitable):
 @mcp.tool(
     title="Check Korean business registration",
     description=(
-        "Validates a Korean business registration number and returns its current official "
-        "National Tax Service status and tax type. Use this for factual verification only; "
-        "it does not score or recommend a business."
+        "사업자 확인 도우미 validates a Korean business registration number and returns its "
+        "current official National Tax Service status and tax type. Use this for factual "
+        "verification only; it does not score or recommend a business."
     ),
     annotations=ToolAnnotations(
         title="Check Korean business registration",
@@ -117,9 +117,9 @@ async def check_business_registration(business_number: str) -> dict[str, Any]:
 @mcp.tool(
     title="Scan Korean business certificate",
     description=(
-        "Extracts fields from a Korean business registration certificate using a public "
-        "HTTPS image URL or OCR text, then verifies the extracted facts against official "
-        "National Tax Service data without making a risk judgment."
+        "사업자 확인 도우미 extracts fields from a Korean business registration certificate "
+        "using a public HTTPS image URL or OCR text, then verifies the extracted facts "
+        "against official National Tax Service data without making a risk judgment."
     ),
     annotations=ToolAnnotations(
         title="Scan Korean business certificate",
@@ -143,9 +143,9 @@ async def scan_business_certificate(image_url: str = "", ocr_text: str | None = 
 @mcp.tool(
     title="Prepare tax invoice confirmation",
     description=(
-        "Validates recipient details and creates a standard Korean tax invoice draft for "
-        "an external confirmation screen. This tool never issues or transmits a tax invoice "
-        "and always requires explicit user confirmation."
+        "사업자 확인 도우미 validates recipient details and creates a standard Korean tax "
+        "invoice draft for an external confirmation screen. This tool never issues or "
+        "transmits a tax invoice and always requires explicit user confirmation."
     ),
     annotations=ToolAnnotations(
         title="Prepare tax invoice confirmation",

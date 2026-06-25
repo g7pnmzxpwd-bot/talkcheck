@@ -28,6 +28,7 @@ class PlayMcpCompatibilityTest(unittest.IsolatedAsyncioTestCase):
             self.assertNotIn("톡체크", tool.description)
             self.assertNotIn("KakaoTalk", tool.description)
             self.assertNotIn("카카오톡", tool.description)
+            self.assertIn("사업자 확인 도우미", tool.description)
             self.assertIsNotNone(tool.annotations)
             assert tool.annotations is not None
             self.assertIsNotNone(tool.annotations.title)
