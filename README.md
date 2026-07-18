@@ -1,9 +1,97 @@
-# 톡체크
+# TalkCheck Verified Agent
+
+> AI reads. Government data verifies. A human decides.
+
+TalkCheck turns a Korean business number or registration certificate into a source-aware evidence
+report. A GPT‑5.6 Codex/ChatGPT host interprets the request, reads the document, and asks the next
+clarifying question; the TalkCheck MCP server performs deterministic checks against National Tax
+Service data and prepares a short-lived tax invoice confirmation handoff. It never scores a
+business or issues an invoice automatically.
+
+**OpenAI Build Week 2026 · Work & Productivity**<br>
+**Live judge demo:** https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/<br>
+**Build Week disclosure and evidence:** [BUILD_WEEK.md](BUILD_WEEK.md)<br>
+**Prepared submission materials:** [submission/DEVPOST.md](submission/DEVPOST.md)
+
+## Judge quick path
+
+1. Open the live demo and switch between **일치** (matched) and **불일치 감지** (conflict).
+2. In the conflict case, confirm that the exact disputed values and one clarification question are
+   visible, and that invoice handoff is blocked.
+3. In the matched case, review the field-level sources, check the confirmation box, and continue to
+   the final demo screen. The screen explicitly remains `not_issued`.
+4. To run the full test suite locally:
+
+   ```bash
+   uv sync
+   uv run python -m unittest discover -s tests -v
+   cd handoff-ui && npm ci && npm run build
+   ```
+
+The demo data is explicitly labelled as simulated and does not represent a real company or a live
+NTS response.
+
+## How GPT‑5.6 is used without an OpenAI API key
+
+The submitted product is a Codex plugin backed by an MCP server. GPT‑5.6 runs in the user's
+Codex/ChatGPT subscription host and provides the non-deterministic layer: understanding intent,
+reading an attached certificate, mapping visible fields to tool arguments, and conducting a
+targeted clarification turn. TalkCheck provides the deterministic layer: checksum validation,
+official status/certificate calls, source reconciliation, and a human-confirmed handoff.
+
+This means **TalkCheck does not require an `OPENAI_API_KEY`**. A local server may use a configured
+`DATA_GO_KR_API_KEY` for direct NTS access; the hosted demo owns its registry connection.
+
+```mermaid
+flowchart LR
+    U["User or finance operator"] --> G["Codex / ChatGPT host<br/>GPT‑5.6 interprets, extracts, clarifies"]
+    G --> M["TalkCheck MCP<br/>deterministic evidence reconciliation"]
+    M --> N["National Tax Service<br/>status + certificate validation"]
+    M --> H["30-minute opaque handoff<br/>not issued"]
+    H --> U
+```
+
+## Codex plugin installation
+
+Supported platform: Codex on macOS, Linux, or Windows with remote HTTP MCP support.
+
+```bash
+git clone https://github.com/g7pnmzxpwd-bot/talkcheck.git
+cd talkcheck
+codex plugin marketplace add "$PWD"
+codex plugin add talkcheck-verified-agent@talkcheck-build-week
+```
+
+Start a new Codex task with GPT‑5.6 selected, then try:
+
+```text
+이 거래처 사업자 정보와 등록증 내용을 대조하고 세금계산서 초안을 준비해 줘.
+```
+
+The plugin manifest is at
+[`plugins/talkcheck-verified-agent`](plugins/talkcheck-verified-agent), and its workflow skill makes
+the evidence boundary and stop conditions explicit.
+
+## Build Week extension at a glance
+
+The repository existed before Build Week. The baseline commit is `746750e` from June 25, 2026.
+Only work added after the July 13 submission-period start is presented for judging:
+
+- a Codex plugin and installable workflow skill;
+- the `reconcile_business_evidence` MCP tool;
+- field-level claimed/extracted/official evidence with exact conflict questions;
+- fail-closed invoice preparation when the UI detects unresolved conflicts;
+- a privacy receipt and matched/conflict live demo modes;
+- new evidence tests, plugin validation, browser verification, and submission documentation.
+
+See [BUILD_WEEK.md](BUILD_WEEK.md) for the complete before/after boundary and Codex decision log.
+
+## 한국어 상세
 
 카카오톡 안에서 받은 사업자등록번호·사업자등록증을 공식 데이터로 확인하고,
-전자세금계산서 발행 확인 화면으로 넘길 초안을 준비하는 MCP 서버 골격입니다.
+전자세금계산서 발행 확인 화면으로 넘길 초안을 준비하는 MCP 서버입니다.
 
-## 현재 범위
+### 현재 범위
 
 - 사업자번호 형식 및 체크섬 확인
 - 국세청 사업자 상태·과세유형 조회
@@ -37,6 +125,12 @@
 사업자등록증 이미지 URL 또는 이미 추출된 OCR 텍스트를 받아 기본 정보를 추출하고
 상태·진위확인 결과를 반환합니다. Docker 실행 시 한국어 Tesseract OCR을 사용합니다.
 이미지는 메모리에서만 처리하며, HTTPS 공개 URL·8MB 이하 이미지로 제한합니다.
+
+### `reconcile_business_evidence`
+
+사용자가 말한 값, AI/문서 추출값, 국세청 조회값을 필드별로 대조합니다. 일치·불일치·
+누락·공식 확인 불가를 구분하고, 충돌이 있으면 정확히 확인할 질문을 반환합니다. 상호와
+대표자명은 상태조회만으로 공식 확인됐다고 표시하지 않습니다.
 
 ### `prepare_tax_invoice_handoff`
 
