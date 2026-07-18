@@ -118,7 +118,7 @@ Codex, GPT‑5.6, MCP, Python, FastMCP, Starlette, httpx, React, Vite, Tesseract
 
 ## Testing instructions
 
-1. Open `https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/`.
+1. Open `https://talkcheck-mcp.onrender.com/`.
 2. Select **불일치 감지** to see the exact conflicting business names and blocked handoff.
 3. Return to **일치**, review the evidence ledger, check the confirmation box, and continue.
 4. Confirm the final screen says this is a demo and no invoice or NTS transmission occurred.
@@ -137,6 +137,6 @@ and submission documentation. `BUILD_WEEK.md` contains the dated before/after ev
 ## Links to complete
 
 - Repository: https://github.com/g7pnmzxpwd-bot/talkcheck
-- Live demo: https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/
+- Live demo: https://talkcheck-mcp.onrender.com/
 - Public YouTube demo: **ADD URL**
 - Primary Codex `/feedback` Session ID: **ADD ID**

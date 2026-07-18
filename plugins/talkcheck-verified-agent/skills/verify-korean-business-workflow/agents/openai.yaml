@@ -9,7 +9,7 @@ dependencies:
       value: "talkcheck"
       description: "Official Korean business checks, evidence reconciliation, and confirmation handoffs"
       transport: "streamable_http"
-      url: "https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/mcp"
+      url: "https://talkcheck-mcp.onrender.com/mcp"
 
 policy:
   allow_implicit_invocation: true

@@ -9,7 +9,7 @@ Service data and prepares a short-lived tax invoice confirmation handoff. It nev
 business or issues an invoice automatically.
 
 **OpenAI Build Week 2026 · Work & Productivity**<br>
-**Live judge demo:** https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/<br>
+**Live judge demo:** https://talkcheck-mcp.onrender.com/<br>
 **Build Week disclosure and evidence:** [BUILD_WEEK.md](BUILD_WEEK.md)<br>
 **Prepared submission materials:** [submission/DEVPOST.md](submission/DEVPOST.md)
 
@@ -137,7 +137,11 @@ See [BUILD_WEEK.md](BUILD_WEEK.md) for the complete before/after boundary and Co
 공급받는자와 거래정보로 정발행 초안을 만들고 외부 확인 화면 이관을 준비합니다.
 이 도구는 세금계산서를 발행하지 않습니다.
 
-## 카카오채널 Skill
+## 기존 카카오채널 호환 어댑터 (Build Week 미사용)
+
+이 어댑터는 기존 TalkCheck 사용자를 위해 유지하지만 OpenAI Build Week의 실행·배포·제출
+경로에는 사용하지 않습니다. Build Week 제품 표면은 Codex 플러그인과 Render의 Remote MCP
+엔드포인트입니다.
 
 챗봇 관리자센터의 Skill URL을 `POST /kakao/skill`로 연결합니다. 어댑터는
 카카오 Skill payload의 `userRequest.utterance`, `action.clientExtra`, 이미지
@@ -199,28 +203,23 @@ TAX_INVOICE_HANDOFF_MODE=local uv run talkcheck
 사용하며 `/health`를 상태 확인 경로로 설정합니다.
 
 Render가 제공하는 `RENDER_EXTERNAL_URL`을 확인 화면의 공개 주소로 자동 사용합니다.
-Blueprint 적용 시 `DATA_GO_KR_API_KEY`만 비밀 환경변수로 입력하면 됩니다.
+새 서비스에서는 Render Dashboard에 `DATA_GO_KR_API_KEY`만 비밀 환경변수로 입력하면
+됩니다.
 
-## Agentic Player 10 예선 제출
+## OpenAI Build Week 배포
 
-공모전 제출 경로는 카카오채널 Skill이 아니라 PlayMCP의 Remote MCP 연결입니다.
-제출용 서버는 PlayMCP in KC에서 이 저장소의 `Dockerfile`을 Git 소스 빌드하고,
-발급된 Endpoint의 `/mcp` 주소를 PlayMCP 개발자 콘솔에 등록합니다.
+Build Week 제출 경로는 카카오채널이나 PlayMCP가 아닙니다. GitHub `main` 브랜치의
+Docker 이미지를 Render가 빌드하고, Codex 플러그인이 공개 Remote MCP 엔드포인트
+`https://talkcheck-mcp.onrender.com/mcp`를 사용합니다.
 
-1. PlayMCP in KC에서 비공개 Git 저장소 URL과 branch/ref를 입력합니다.
-2. 저장소 루트의 `Dockerfile`로 서버를 빌드합니다.
-3. 발급된 Endpoint URL 뒤에 `/mcp`를 붙여 PlayMCP에서 정보를 불러옵니다.
-4. 먼저 임시 등록하고 AI 채팅에서 도구 선택과 인자 연결을 시험합니다.
-5. 테스트 완료 후 심사를 요청하고, 승인되면 전체 공개로 전환합니다.
+1. 검증된 Build Week 커밋을 GitHub `main`에 반영합니다.
+2. Render 자동 배포가 완료될 때까지 기다립니다.
+3. `/health`와 원격 `tools/list`에서 서비스 상태와 네 개의 MCP 도구를 확인합니다.
+4. 저장소의 플러그인을 설치해 GPT‑5.6 Codex 작업에서 실제 조정 흐름을 실행합니다.
 
-도구 호출은 `PLAYMCP_TOOL_TIMEOUT_SECONDS`로 제한하며 기본값은 2.8초입니다.
-모든 도구는 PlayMCP 필수 annotations를 명시하고 실제 발행 없이 조회와 초안
-준비만 수행합니다. 실제 세금계산서 발행과 Kakao Tools Widget은 예선 범위에
-포함하지 않습니다.
-
-PlayMCP in KC 공개 가이드에는 런타임 비밀 환경변수 입력 방법이 명시되어 있지
-않습니다. `DATA_GO_KR_API_KEY`를 이미지나 Git 저장소에 포함하지 말고, 배포 화면의
-비밀 환경변수 지원 여부를 확인한 뒤 입력해야 합니다.
+`DATA_GO_KR_API_KEY`는 OpenAI 키가 아닌 공공데이터포털의 국세청 API 인증키이며,
+필요할 때만 Render 비밀 환경변수로 관리합니다. 저장소나 Docker 이미지에는 포함하지
+않습니다.
 
 ## 테스트
 
@@ -230,7 +229,7 @@ uv run python -m unittest discover -s tests -v
 
 ## 다음 연동 순서
 
-1. PlayMCP 임시 등록에서 첨부 이미지 URL 전달을 검증합니다.
+1. Codex 호스트에서 첨부 이미지 필드 전달을 검증합니다.
 2. 실제 사업자등록증 사진으로 OCR 정확도 샘플을 측정합니다.
 3. 전자세금계산서 ASP 테스트 계정을 연결해 opaque handoff URL 다음 단계를 완성합니다.
-4. Kakao Tools 전용 위젯을 구현합니다.
+4. 조직별 감사 정책과 암호화된 워크플로 저장소를 추가합니다.

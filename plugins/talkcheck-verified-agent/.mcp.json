@@ -2,7 +2,7 @@
   "mcpServers": {
     "talkcheck": {
       "type": "http",
-      "url": "https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/mcp"
+      "url": "https://talkcheck-mcp.onrender.com/mcp"
     }
   }
 }
