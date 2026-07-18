@@ -233,3 +233,7 @@ uv run python -m unittest discover -s tests -v
 2. 실제 사업자등록증 사진으로 OCR 정확도 샘플을 측정합니다.
 3. 전자세금계산서 ASP 테스트 계정을 연결해 opaque handoff URL 다음 단계를 완성합니다.
 4. 조직별 감사 정책과 암호화된 워크플로 저장소를 추가합니다.
+
+## License
+
+This project is available under the [MIT License](LICENSE).
