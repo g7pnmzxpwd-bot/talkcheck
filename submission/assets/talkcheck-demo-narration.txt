@@ -1,0 +1,13 @@
+Verifying a new Korean vendor looks simple until four sources disagree: a chat message, a business registration certificate, government status data, and an invoice draft. One copied character can connect a financial action to the wrong record. TalkCheck makes that workflow conversational without pretending that AI extraction is an official fact.
+
+GPT-5.6 Sol runs in my Codex subscription. It understands the Korean request, reads the visible certificate fields, maps them into a narrow tool contract, and manages the clarification turn. The TalkCheck MCP server does the deterministic work: business-number checksum validation, National Tax Service status and certificate checks, source attribution, and a short-lived confirmation handoff. Users do not need a separate OpenAI API key.
+
+In the conflict scenario, the claimed name is “Jusik Hoesa Monolab,” while the extracted certificate name is “Monolab Studio.” The official business status can still be active, but that does not prove the two names are the same. TalkCheck preserves each value and its source. It returns one exact unresolved question, marks the workflow as needing clarification, and blocks invoice preparation. There is no model-generated risk score and no confident merge of contradictory evidence.
+
+The same evidence model drives the product interface. The operator can see what came from user input, AI document extraction, or an official validation response. The disputed field is highlighted, the stop condition is explicit, and the financial workflow fails closed.
+
+When the values agree, the evidence ledger changes to a verified state. TalkCheck then prepares an opaque handoff that expires after thirty minutes. Certificate images are not persisted by TalkCheck, and a human must still review the external confirmation. Even the final demo screen states that no invoice was issued and nothing was transmitted to the National Tax Service.
+
+TalkCheck existed before Build Week as an MCP prototype with number checks, certificate validation, and a basic invoice handoff. During Build Week, Codex helped audit the real provider limits, design and implement the source-aware evidence engine, add the fourth reconciliation tool, package the Codex plugin and workflow skill, build the matched and conflict experiences, and validate the deployed product. The dated branch contains the Build Week commits, and thirty-nine automated tests pass.
+
+TalkCheck Verified Agent: AI reads, government data verifies, and a human decides.

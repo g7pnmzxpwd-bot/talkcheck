@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TalkCheck Build Week demo slides</title>
+    <style>
+      :root {
+        --navy: #071d2b;
+        --ink: #102a38;
+        --ivory: #f6f0e4;
+        --teal: #0f8f86;
+        --mint: #a9e5d4;
+        --amber: #f1a93b;
+        --paper: #fffaf1;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { width: 1280px; height: 720px; margin: 0; overflow: hidden; }
+      body {
+        background: var(--navy);
+        color: var(--ivory);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: none;
+        width: 1280px;
+        height: 720px;
+      }
+      body[data-slide="title"] #title,
+      body[data-slide="architecture"] #architecture,
+      body[data-slide="build"] #build,
+      body[data-slide="outro"] #outro { display: flex; }
+
+      .eyebrow {
+        color: var(--mint);
+        font-size: 19px;
+        font-weight: 750;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+      }
+      h1, h2, h3, p { margin: 0; }
+      h1 { font-size: 68px; line-height: 1.02; letter-spacing: -.045em; }
+      h2 { font-size: 46px; line-height: 1.06; letter-spacing: -.035em; }
+      h3 { font-size: 25px; line-height: 1.14; }
+
+      .brand {
+        position: absolute;
+        top: 38px;
+        left: 58px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 3;
+        font-size: 18px;
+        font-weight: 760;
+        letter-spacing: .03em;
+      }
+      .brand-mark {
+        width: 29px;
+        height: 29px;
+        border-radius: 9px;
+        border: 2px solid var(--mint);
+        position: relative;
+      }
+      .brand-mark::before,
+      .brand-mark::after {
+        content: "";
+        position: absolute;
+        background: var(--amber);
+        border-radius: 4px;
+      }
+      .brand-mark::before { width: 5px; height: 17px; left: 10px; top: 4px; }
+      .brand-mark::after { width: 17px; height: 5px; left: 4px; top: 10px; }
+      .page-no {
+        position: absolute;
+        right: 54px;
+        bottom: 34px;
+        color: rgba(246,240,228,.56);
+        font-size: 15px;
+        letter-spacing: .08em;
+      }
+
+      .hero {
+        align-items: flex-end;
+        padding: 100px 72px 74px;
+        background-image:
+          linear-gradient(90deg, rgba(7,29,43,.98) 0%, rgba(7,29,43,.9) 42%, rgba(7,29,43,.26) 72%, rgba(7,29,43,.18) 100%),
+          linear-gradient(0deg, rgba(7,29,43,.94) 0%, transparent 48%),
+          url("talkcheck-devpost-thumbnail.png");
+        background-size: cover;
+        background-position: center;
+      }
+      .hero-copy { position: relative; z-index: 2; width: 750px; }
+      .hero h1 { margin-top: 18px; max-width: 720px; }
+      .hero .tagline {
+        margin-top: 25px;
+        max-width: 720px;
+        color: #d9e5df;
+        font-size: 28px;
+        line-height: 1.34;
+        font-weight: 520;
+      }
+      .rule { width: 96px; height: 6px; margin-top: 29px; background: var(--amber); border-radius: 9px; }
+
+      .content-slide {
+        flex-direction: column;
+        padding: 105px 64px 54px;
+        background:
+          radial-gradient(circle at 89% 12%, rgba(15,143,134,.24), transparent 32%),
+          linear-gradient(135deg, #071d2b 0%, #0b2937 100%);
+      }
+      .content-slide .heading-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 40px;
+      }
+      .content-slide .heading-row p {
+        width: 410px;
+        color: #b9cbc8;
+        font-size: 19px;
+        line-height: 1.45;
+        text-align: right;
+      }
+
+      .architecture-grid {
+        display: grid;
+        grid-template-columns: 1fr 64px 1fr 64px 1fr;
+        align-items: stretch;
+        gap: 0;
+        margin-top: 45px;
+      }
+      .card {
+        min-height: 345px;
+        padding: 28px;
+        border: 1px solid rgba(169,229,212,.2);
+        border-radius: 22px;
+        background: rgba(255,250,241,.065);
+        box-shadow: 0 20px 50px rgba(0,0,0,.12);
+      }
+      .card.accent { border-color: rgba(241,169,59,.46); background: rgba(241,169,59,.085); }
+      .card .index {
+        display: inline-flex;
+        width: 38px;
+        height: 38px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 22px;
+        border-radius: 12px;
+        background: rgba(169,229,212,.13);
+        color: var(--mint);
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .card.accent .index { color: #ffd085; background: rgba(241,169,59,.14); }
+      .card p { margin-top: 15px; color: #bdcfcc; font-size: 18px; line-height: 1.47; }
+      .pill {
+        display: inline-flex;
+        margin-top: 22px;
+        padding: 8px 11px;
+        border-radius: 999px;
+        background: rgba(15,143,134,.19);
+        color: var(--mint);
+        font-size: 13px;
+        font-weight: 760;
+        letter-spacing: .025em;
+      }
+      .arrow { display: flex; align-items: center; justify-content: center; color: var(--amber); font-size: 37px; }
+
+      .build-grid {
+        display: grid;
+        grid-template-columns: .82fr 1.18fr;
+        gap: 25px;
+        margin-top: 39px;
+      }
+      .build-panel {
+        min-height: 363px;
+        padding: 27px 30px;
+        border-radius: 22px;
+        border: 1px solid rgba(169,229,212,.18);
+        background: rgba(255,250,241,.06);
+      }
+      .build-panel.now { border-color: rgba(15,143,134,.7); background: rgba(15,143,134,.11); }
+      .panel-label { color: #8fa8a5; font-size: 14px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+      .now .panel-label { color: var(--mint); }
+      .build-panel h3 { margin-top: 16px; }
+      .build-panel ul { margin: 22px 0 0; padding: 0; list-style: none; }
+      .build-panel li {
+        position: relative;
+        margin-top: 13px;
+        padding-left: 24px;
+        color: #c5d4d1;
+        font-size: 17px;
+        line-height: 1.38;
+      }
+      .build-panel li::before { content: "•"; position: absolute; left: 2px; color: var(--amber); }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .metric { padding: 16px 14px; border-radius: 15px; background: rgba(7,29,43,.5); }
+      .metric strong { display: block; color: #fff7e8; font-size: 25px; }
+      .metric span { display: block; margin-top: 4px; color: #9fb8b4; font-size: 12px; line-height: 1.25; }
+
+      .outro {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background-image:
+          linear-gradient(rgba(7,29,43,.86), rgba(7,29,43,.92)),
+          url("talkcheck-devpost-thumbnail.png");
+        background-size: cover;
+        background-position: center;
+      }
+      .outro-copy { max-width: 950px; padding: 42px; }
+      .outro h2 { margin-top: 18px; font-size: 61px; }
+      .outro p { margin-top: 25px; color: #d2dfdb; font-size: 29px; }
+      .outro .rule { margin: 29px auto 0; }
+    </style>
+  </head>
+  <body data-slide="title">
+    <section class="slide hero" id="title">
+      <div class="brand"><span class="brand-mark"></span> TalkCheck</div>
+      <div class="hero-copy">
+        <div class="eyebrow">OpenAI Build Week · Work &amp; Productivity</div>
+        <h1>TalkCheck<br />Verified Agent</h1>
+        <p class="tagline">AI reads. Government data verifies.<br />A human decides.</p>
+        <div class="rule"></div>
+      </div>
+      <div class="page-no">01 / 04</div>
+    </section>
+
+    <section class="slide content-slide" id="architecture">
+      <div class="brand"><span class="brand-mark"></span> TalkCheck</div>
+      <div class="heading-row">
+        <div>
+          <div class="eyebrow">Verified-agent architecture</div>
+          <h2>Separate understanding<br />from authority.</h2>
+        </div>
+        <p>Conversational where nuance helps. Deterministic where financial evidence matters.</p>
+      </div>
+      <div class="architecture-grid">
+        <article class="card">
+          <span class="index">01</span>
+          <h3>GPT‑5.6 Sol<br />inside Codex</h3>
+          <p>Understands the Korean request, reads visible document fields, and manages one clarification turn.</p>
+          <span class="pill">SUBSCRIPTION PATH</span>
+        </article>
+        <div class="arrow">→</div>
+        <article class="card accent">
+          <span class="index">02</span>
+          <h3>TalkCheck<br />MCP tools</h3>
+          <p>Checks the business number, calls official status providers, and keeps every value tied to its source.</p>
+          <span class="pill">DETERMINISTIC CORE</span>
+        </article>
+        <div class="arrow">→</div>
+        <article class="card">
+          <span class="index">03</span>
+          <h3>Human-confirmed<br />handoff</h3>
+          <p>Conflicts fail closed. Verified evidence creates an expiring handoff—never an autonomous invoice.</p>
+          <span class="pill">NO OPENAI API KEY</span>
+        </article>
+      </div>
+      <div class="page-no">02 / 04</div>
+    </section>
+
+    <section class="slide content-slide" id="build">
+      <div class="brand"><span class="brand-mark"></span> TalkCheck</div>
+      <div class="heading-row">
+        <div>
+          <div class="eyebrow">Build Week evidence</div>
+          <h2>Prototype in.<br />Verified agent out.</h2>
+        </div>
+        <p>The dated branch preserves the baseline and every Build Week extension.</p>
+      </div>
+      <div class="build-grid">
+        <article class="build-panel">
+          <div class="panel-label">Before Build Week</div>
+          <h3>Useful MCP prototype</h3>
+          <ul>
+            <li>Business-number checksum</li>
+            <li>NTS status and certificate checks</li>
+            <li>Basic invoice-confirmation handoff</li>
+          </ul>
+        </article>
+        <article class="build-panel now">
+          <div class="panel-label">Built during Build Week</div>
+          <h3>Source-aware verification workflow</h3>
+          <ul>
+            <li>Fourth MCP tool: evidence reconciliation</li>
+            <li>Fail-closed conflict state and exact clarification</li>
+            <li>Installable Codex plugin + workflow skill</li>
+            <li>Matched and conflict product experiences</li>
+          </ul>
+          <div class="metrics">
+            <div class="metric"><strong>5</strong><span>dated commits</span></div>
+            <div class="metric"><strong>39</strong><span>automated tests pass</span></div>
+            <div class="metric"><strong>1</strong><span>deployed live demo</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="page-no">03 / 04</div>
+    </section>
+
+    <section class="slide outro" id="outro">
+      <div class="brand"><span class="brand-mark"></span> TalkCheck</div>
+      <div class="outro-copy">
+        <div class="eyebrow">TalkCheck Verified Agent</div>
+        <h2>Evidence before action.</h2>
+        <p>AI reads. Government data verifies. A human decides.</p>
+        <div class="rule"></div>
+      </div>
+      <div class="page-no">04 / 04</div>
+    </section>
+
+    <script>
+      const setSlide = () => {
+        const requested = location.hash.slice(1);
+        document.body.dataset.slide = ["title", "architecture", "build", "outro"].includes(requested)
+          ? requested
+          : "title";
+      };
+      addEventListener("hashchange", setSlide);
+      setSlide();
+    </script>
+  </body>
+</html>

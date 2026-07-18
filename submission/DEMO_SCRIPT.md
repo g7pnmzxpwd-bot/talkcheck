@@ -1,7 +1,12 @@
-# Demo Video Script — 2:45 Target
+# Demo Video Script — Final 2:31 Cut
 
 The submission video must be public on YouTube, include audio, and stay under three minutes. Record
 the narration in English. Korean filming notes are included after each segment.
+
+The rendered submission artifact is `submission/assets/talkcheck-build-week-demo.mp4` (2:31,
+1280×720, H.264/AAC). Its exact narration is in
+`submission/assets/talkcheck-demo-narration.txt`, and the four reproducible title/evidence slides
+are in `submission/assets/video-slides.html`.
 
 ## 0:00–0:18 — Problem
 
