@@ -42,9 +42,9 @@ The repository is currently private.
 - [ ] Show Codex or the dated Build Week evidence briefly.
 - [ ] Use English narration or provide a complete English translation.
 - [ ] Remove copyrighted music, unauthorized trademarks/assets, secrets, and private data.
-- [ ] Upload to YouTube as **Public**, not Unlisted or Private.
+- [x] Upload to YouTube as **Public**, not Unlisted or Private.
 - [ ] Open the YouTube URL in a logged-out/private window and verify playback and audio.
-- [ ] Replace `ADD URL` in `submission/DEVPOST.md`.
+- [x] Replace `ADD URL` in `submission/DEVPOST.md`.
 
 ## Devpost form
 
