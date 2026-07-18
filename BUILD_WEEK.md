@@ -75,12 +75,14 @@ has been issued, requires confirmation, and the Build Week conflict mode blocks 
 
 The plugin skill at
 `plugins/talkcheck-verified-agent/skills/verify-korean-business-workflow/SKILL.md` defines the
-runtime orchestration performed by GPT‑5.6. The demo video should show GPT‑5.6 selected in Codex,
-invoke the skill on a sample request, and briefly show the resulting MCP calls and clarification.
+runtime orchestration performed by GPT‑5.6. The deployed plugin was smoke-tested end to end on
+July 18 with the exact Codex model ID `gpt-5.6-sol`. The demo video should show GPT‑5.6 Sol
+selected in Codex, invoke the skill on a sample request, and briefly show the resulting MCP calls
+and clarification.
 
 Do not claim that this build task used GPT‑5.6 unless the model selector/session evidence confirms
-it. Before submission, run the working plugin in a GPT‑5.6 task and record that task in the video or
-submission evidence.
+it. Before submission, run the working plugin in a persisted GPT‑5.6 Sol task and record that task
+in the video or submission evidence.
 
 ## Reproducible verification
 

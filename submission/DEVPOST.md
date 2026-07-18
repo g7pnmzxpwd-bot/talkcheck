@@ -124,7 +124,7 @@ Codex, GPT‑5.6, MCP, Python, FastMCP, Starlette, httpx, React, Vite, Tesseract
 4. Confirm the final screen says this is a demo and no invoice or NTS transmission occurred.
 
 For plugin testing, follow the installation section in the repository README and start a new Codex
-task with GPT‑5.6 selected.
+task with GPT‑5.6 Sol (`gpt-5.6-sol`) selected.
 
 ## Existing work disclosure
 

@@ -18,7 +18,7 @@ an official fact.”
 
 ## 0:18–0:43 — Architecture and GPT‑5.6
 
-**Screen:** Codex with GPT‑5.6 selected; briefly show the TalkCheck plugin/skill chip or tool list.
+**Screen:** Codex with GPT‑5.6 Sol selected; briefly show the TalkCheck plugin/skill chip or tool list.
 
 **Narration:**
 
@@ -27,7 +27,7 @@ certificate fields, maps them to tools, and handles clarification. The TalkCheck
 deterministic work: checksum validation, National Tax Service calls, and source reconciliation. No
 OpenAI API key is required.”
 
-촬영: 모델 선택기에서 GPT‑5.6임을 보이고 플러그인이 연결된 상태를 보여준다.
+촬영: 모델 선택기에서 GPT‑5.6 Sol임을 보이고 플러그인이 연결된 상태를 보여준다.
 
 ## 0:43–1:18 — Working agent and conflict
 
@@ -95,7 +95,7 @@ primary feedback Session ID document that work.”
 ## Recording checklist
 
 - Keep the final edit at 2:50 or shorter.
-- Show a real GPT‑5.6 model selection and real TalkCheck tool invocation.
+- Show a real GPT‑5.6 Sol model selection and real TalkCheck tool invocation.
 - Show Codex development evidence, not only the product UI.
 - Use English narration, or attach a complete English translation.
 - Remove credentials, private certificate data, email notifications, and unrelated browser tabs.

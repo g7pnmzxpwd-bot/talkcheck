@@ -62,7 +62,7 @@ codex plugin marketplace add "$PWD"
 codex plugin add talkcheck-verified-agent@talkcheck-build-week
 ```
 
-Start a new Codex task with GPT‑5.6 selected, then try:
+Start a new Codex task with **GPT‑5.6 Sol** (`gpt-5.6-sol`) selected, then try:
 
 ```text
 이 거래처 사업자 정보와 등록증 내용을 대조하고 세금계산서 초안을 준비해 줘.
@@ -215,7 +215,7 @@ Docker 이미지를 Render가 빌드하고, Codex 플러그인이 공개 Remote 
 1. 검증된 Build Week 커밋을 GitHub `main`에 반영합니다.
 2. Render 자동 배포가 완료될 때까지 기다립니다.
 3. `/health`와 원격 `tools/list`에서 서비스 상태와 네 개의 MCP 도구를 확인합니다.
-4. 저장소의 플러그인을 설치해 GPT‑5.6 Codex 작업에서 실제 조정 흐름을 실행합니다.
+4. 저장소의 플러그인을 설치해 GPT‑5.6 Sol Codex 작업에서 실제 조정 흐름을 실행합니다.
 
 `DATA_GO_KR_API_KEY`는 OpenAI 키가 아닌 공공데이터포털의 국세청 API 인증키이며,
 필요할 때만 Render 비밀 환경변수로 관리합니다. 저장소나 Docker 이미지에는 포함하지

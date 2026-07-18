@@ -72,9 +72,30 @@ class EvidenceReportTest(unittest.TestCase):
         self.assertEqual(report["workflow_status"], "needs_clarification")
         self.assertEqual(report["next_action"], "resolve_conflicts")
         self.assertEqual(report["summary"]["conflicts"], 1)
-        self.assertIn("모노랩 스튜디오", report["clarifying_questions"][0])
+        self.assertEqual(
+            report["clarifying_questions"][0],
+            "사용자 입력(상호: 모노랩)과 증명서 추출(상호: 모노랩 스튜디오) 중 어느 값이 맞나요?",
+        )
         self.assertNotIn("score", report)
         self.assertNotIn("recommendation", report)
+
+    def test_does_not_count_unregistered_notice_as_verified_tax_type(self) -> None:
+        report = build_evidence_report(
+            business_number="123-45-67891",
+            official_lookup={
+                "business_status": "",
+                "business_status_code": "",
+                "tax_type": "국세청에 등록되지 않은 사업자등록번호입니다.",
+                "tax_type_code": "",
+            },
+        )
+
+        tax_type = next(item for item in report["field_results"] if item["field"] == "tax_type")
+        self.assertEqual(report["workflow_status"], "official_lookup_unavailable")
+        self.assertFalse(report["summary"]["official_lookup_available"])
+        self.assertEqual(report["summary"]["officially_verified"], 0)
+        self.assertEqual(tax_type["status"], "unavailable")
+        self.assertIsNone(tax_type["official"])
 
     def test_labels_name_as_user_confirmation_when_no_certificate_exists(self) -> None:
         report = build_evidence_report(

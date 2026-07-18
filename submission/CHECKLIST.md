@@ -16,7 +16,7 @@ submit at the deadline; target July 21 KST.
 
 ## GPT‑5.6 and Codex evidence
 
-- [ ] Start a new product-demo task with GPT‑5.6 explicitly selected.
+- [ ] Start a new product-demo task with GPT‑5.6 Sol (`gpt-5.6-sol`) explicitly selected.
 - [ ] Install/enable `talkcheck-verified-agent` and invoke the workflow skill.
 - [ ] Capture a real `reconcile_business_evidence` tool call and clarification turn.
 - [ ] Run `/feedback` in this primary build task and copy the Session ID.

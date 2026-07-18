@@ -102,7 +102,7 @@ const conflictDemoRecord = {
           extracted: "모노랩 스튜디오",
           official: null,
           sources: ["user_input", "certificate_extraction"],
-          message: "입력된 상호와 증명서에서 추출한 상호가 다릅니다.",
+          message: "상호의 사용자 입력값과 증명서 추출값이 다릅니다.",
         }
         : item
     )),
@@ -112,7 +112,7 @@ const conflictDemoRecord = {
       conflicts: 1,
     },
     clarifying_questions: [
-      "입력한 상호(주식회사 모노랩)와 증명서 추출값(모노랩 스튜디오) 중 어느 값이 맞나요?",
+      "사용자 입력(상호: 주식회사 모노랩)과 증명서 추출(상호: 모노랩 스튜디오) 중 어느 값이 맞나요?",
     ],
   },
 };

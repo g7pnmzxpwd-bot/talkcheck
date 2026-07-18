@@ -82,7 +82,7 @@ def _identity_field(
             key,
             label,
             "conflict",
-            f"입력된 {label}과 증명서에서 추출한 {label}이 다릅니다.",
+            f"{label}의 사용자 입력값과 증명서 추출값이 다릅니다.",
             claimed=claimed,
             extracted=extracted,
             sources=sources,
@@ -266,7 +266,7 @@ def build_evidence_report(
         ("business_status", "사업자 상태", lookup.get("business_status")),
         ("tax_type", "과세 유형", lookup.get("tax_type")),
     ):
-        if value:
+        if lookup_available and value:
             results.append(
                 _field(
                     key,
@@ -356,7 +356,8 @@ def build_evidence_report(
             questions.append("입력한 사업자등록번호와 증명서의 번호 중 어느 것이 맞는지 원본을 확인해 주세요.")
         elif item["field"] in {"business_name", "representative_name"}:
             questions.append(
-                f"입력한 {item['label']}({item['claimed']})과 증명서 추출값({item['extracted']}) 중 어느 값이 맞나요?"
+                f"사용자 입력({item['label']}: {item['claimed']})과 "
+                f"증명서 추출({item['label']}: {item['extracted']}) 중 어느 값이 맞나요?"
             )
         elif item["field"] == "certificate_bundle":
             questions.append("증명서 원본의 사업자등록번호·개업일자·대표자명·상호를 다시 확인해 주세요.")
