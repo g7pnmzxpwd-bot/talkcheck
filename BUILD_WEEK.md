@@ -8,7 +8,7 @@
 - Pre-event baseline: commit `746750e99ce35ab0da850e59c9d4ec55ab91e77a`
 - Baseline authored: June 25, 2026 at 22:47 KST
 - Build Week branch: `codex/build-week-verified-agent`
-- Primary Codex `/feedback` Session ID: **ADD BEFORE SUBMISSION**
+- Primary Codex `/feedback` Session ID: `019f74dc-b4db-7582-9aaf-f26fbd1cccc9`
 
 This project existed before the submission period. The table below deliberately separates the
 baseline from the meaningful extension built during Build Week. Judges should evaluate the new

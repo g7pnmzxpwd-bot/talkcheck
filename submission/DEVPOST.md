@@ -139,4 +139,4 @@ and submission documentation. `BUILD_WEEK.md` contains the dated before/after ev
 - Repository: https://github.com/g7pnmzxpwd-bot/talkcheck
 - Live demo: https://talkcheck-mcp.onrender.com/
 - Public YouTube demo: https://youtu.be/XI53a5cut3o
-- Primary Codex `/feedback` Session ID: **ADD ID**
+- Primary Codex `/feedback` Session ID: `019f74dc-b4db-7582-9aaf-f26fbd1cccc9`
