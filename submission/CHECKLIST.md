@@ -25,11 +25,10 @@ submit at the deadline; target July 21 KST.
 
 ## Repository access
 
-The repository is currently private.
+The repository is public under the MIT License.
 
-- [ ] Either make it public with an appropriate license, or keep it private and grant access to
-  `testing@devpost.com` and `build-week-event@openai.com`.
-- [ ] Verify both judging accounts can access the exact submitted repository URL.
+- [x] Make the repository public with the MIT License.
+- [x] Verify the exact submitted repository URL is accessible without authentication.
 - [ ] Ensure `.env`, API keys, tokens, private certificates, browser sessions, and local screenshots
   containing personal data are not committed.
 - [ ] Confirm README setup, sample/demo path, supported platforms, and plugin installation are clear.
