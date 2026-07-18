@@ -6,3 +6,5 @@ __pycache__/
 handoff-ui/node_modules/
 handoff-ui/dist/
 handoff-ui/.npm-cache/
+output/playwright/
+.playwright-cli/

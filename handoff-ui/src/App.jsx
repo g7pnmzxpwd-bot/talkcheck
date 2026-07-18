@@ -6,16 +6,53 @@ import {
   Check,
   CheckCircle,
   CircleNotch,
+  Database,
+  FileText,
   Info,
+  LockKey,
   PencilSimple,
   ShieldCheck,
+  Sparkle,
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
 
+const demoFieldResults = [
+  {
+    field: "business_number",
+    label: "사업자등록번호",
+    status: "verified",
+    claimed: "123-45-67891",
+    extracted: "123-45-67891",
+    official: "123-45-67891",
+    sources: ["workflow_input", "certificate_extraction", "nts_status_lookup"],
+    message: "국세청 상태조회에서 이 번호의 현재 상태가 반환되었습니다.",
+  },
+  {
+    field: "business_name",
+    label: "상호",
+    status: "verified",
+    claimed: "주식회사 모노랩",
+    extracted: "주식회사 모노랩",
+    official: "주식회사 모노랩",
+    sources: ["user_input", "certificate_extraction", "nts_certificate_validation"],
+    message: "국세청 증명서 진위확인에 제출된 정보 묶음 안에서 확인되었습니다.",
+  },
+  {
+    field: "representative_name",
+    label: "대표자명",
+    status: "verified",
+    claimed: "김민수",
+    extracted: "김민수",
+    official: "김민수",
+    sources: ["user_input", "certificate_extraction", "nts_certificate_validation"],
+    message: "국세청 증명서 진위확인에 제출된 정보 묶음 안에서 확인되었습니다.",
+  },
+];
+
 const demoRecord = {
   draft: {
-    recipient_business_number: "1234567890",
+    recipient_business_number: "1234567891",
     recipient_name: "주식회사 모노랩",
     supply_date: "2026-06-18",
     item_name: "디자인 용역",
@@ -27,12 +64,56 @@ const demoRecord = {
   business_check: {
     business_name: "주식회사 모노랩",
     representative_name: "김민수",
-    formatted_business_number: "123-45-67890",
+    formatted_business_number: "123-45-67891",
     official_lookup: {
       business_status: "계속사업자",
       tax_type: "부가가치세 일반과세자",
     },
-    source: "국세청 조회",
+    source: "Build Week 데모 · 국세청 응답 형식 시뮬레이션",
+    workflow_status: "ready_for_draft",
+    field_results: demoFieldResults,
+    evidence_summary: {
+      officially_verified: 5,
+      cross_source_consistent: 0,
+      conflicts: 0,
+      needs_confirmation: 0,
+      official_lookup_available: true,
+      certificate_bundle_verified: true,
+    },
+    clarifying_questions: [],
+    data_handling: {
+      downloaded_image_storage: "TalkCheck processes downloaded images in memory and does not persist them",
+      handoff_ttl_minutes: 30,
+    },
+  },
+};
+
+const conflictDemoRecord = {
+  draft: demoRecord.draft,
+  business_check: {
+    ...demoRecord.business_check,
+    workflow_status: "needs_clarification",
+    field_results: demoFieldResults.map((item) => (
+      item.field === "business_name"
+        ? {
+          ...item,
+          status: "conflict",
+          claimed: "주식회사 모노랩",
+          extracted: "모노랩 스튜디오",
+          official: null,
+          sources: ["user_input", "certificate_extraction"],
+          message: "입력된 상호와 증명서에서 추출한 상호가 다릅니다.",
+        }
+        : item
+    )),
+    evidence_summary: {
+      ...demoRecord.business_check.evidence_summary,
+      officially_verified: 4,
+      conflicts: 1,
+    },
+    clarifying_questions: [
+      "입력한 상호(주식회사 모노랩)와 증명서 추출값(모노랩 스튜디오) 중 어느 값이 맞나요?",
+    ],
   },
 };
 
@@ -46,6 +127,25 @@ const fieldMeta = {
 
 const currency = new Intl.NumberFormat("ko-KR");
 const appBasePath = new URL(import.meta.env.BASE_URL, window.location.origin).pathname.replace(/\/$/, "");
+
+const evidenceStatusMeta = {
+  verified: { label: "공식 확인", tone: "verified" },
+  consistent: { label: "교차 일치", tone: "consistent" },
+  conflict: { label: "불일치", tone: "conflict" },
+  needs_confirmation: { label: "확인 필요", tone: "pending" },
+  extracted: { label: "문서 추출", tone: "pending" },
+  unavailable: { label: "조회 미완료", tone: "pending" },
+  invalid: { label: "번호 오류", tone: "conflict" },
+  missing: { label: "정보 없음", tone: "muted" },
+};
+
+const sourceLabels = {
+  workflow_input: "요청 정보",
+  user_input: "사용자 입력",
+  certificate_extraction: "AI 문서 추출",
+  nts_status_lookup: "국세청 상태조회",
+  nts_certificate_validation: "국세청 진위확인",
+};
 
 function appUrl(path) {
   return `${appBasePath}${path}`;
@@ -121,6 +221,7 @@ export function App() {
   const [draft, setDraft] = useState(() => draftFromRecord(demoRecord));
   const [invoiceContext, setInvoiceContext] = useState(() => invoiceContextFromRecord(demoRecord));
   const [businessCheck, setBusinessCheck] = useState(demoRecord.business_check);
+  const [demoScenario, setDemoScenario] = useState("verified");
   const [loadState, setLoadState] = useState(referenceId ? "loading" : "ready");
   const [reloadKey, setReloadKey] = useState(0);
   const [actionState, setActionState] = useState("idle");
@@ -177,6 +278,17 @@ export function App() {
   function openEditor(field) {
     setEditing(field);
     setEditValue(draft[field]);
+  }
+
+  function selectDemoScenario(scenario) {
+    const record = scenario === "conflict" ? conflictDemoRecord : demoRecord;
+    setDemoScenario(scenario);
+    setDraft(draftFromRecord(record));
+    setInvoiceContext(invoiceContextFromRecord(record));
+    setBusinessCheck(record.business_check);
+    setAgreed(false);
+    setErrors({});
+    setToast(scenario === "conflict" ? "AI가 상호 불일치 1건을 찾았어요." : "모든 핵심 정보가 일치해요.");
   }
 
   function closeEditor() {
@@ -247,6 +359,10 @@ export function App() {
 
   async function submitHandoff(event) {
     event.preventDefault();
+    if ((businessCheck.evidence_summary?.conflicts || 0) > 0) {
+      setToast(businessCheck.clarifying_questions?.[0] || "불일치 정보를 먼저 확인해 주세요.");
+      return;
+    }
     const nextErrors = validate(draft, agreed);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) {
@@ -275,6 +391,37 @@ export function App() {
 
   const officialLookup = businessCheck.official_lookup || {};
   const verificationComplete = Boolean(officialLookup.business_status);
+  const evidenceFields = Array.isArray(businessCheck.field_results)
+    ? businessCheck.field_results.filter((item) => (
+      ["business_number", "business_name", "representative_name"].includes(item.field)
+    ))
+    : [
+      {
+        field: "business_number",
+        label: "사업자등록번호",
+        status: verificationComplete ? "verified" : "unavailable",
+        official: businessCheck.formatted_business_number,
+        sources: verificationComplete ? ["nts_status_lookup"] : [],
+      },
+      {
+        field: "business_name",
+        label: "상호",
+        status: "needs_confirmation",
+        claimed: businessCheck.business_name || invoiceContext.recipientName,
+        sources: ["user_input"],
+      },
+      {
+        field: "representative_name",
+        label: "대표자명",
+        status: businessCheck.representative_name ? "needs_confirmation" : "missing",
+        claimed: businessCheck.representative_name,
+        sources: businessCheck.representative_name ? ["user_input"] : [],
+      },
+    ];
+  const evidenceConflictCount = businessCheck.evidence_summary?.conflicts
+    ?? evidenceFields.filter((item) => item.status === "conflict").length;
+  const evidenceBlocked = evidenceConflictCount > 0
+    || businessCheck.workflow_status === "invalid_business_number";
   const businessName = businessCheck.business_name || invoiceContext.recipientName;
   const businessNumber = businessCheck.formatted_business_number
     || invoiceContext.recipientBusinessNumber.replace(/^(\d{3})(\d{2})(\d{5})$/, "$1-$2-$3");
@@ -328,13 +475,30 @@ export function App() {
           <button className="primary-button" type="button" onClick={() => window.history.back()}>초안으로 돌아가기</button>
         </section>
       ) : <form className="page" onSubmit={submitHandoff} noValidate>
+        {!referenceId && (
+          <nav className="demo-switch" aria-label="Build Week 데모 시나리오">
+            <span><Sparkle weight="fill" />LIVE DEMO</span>
+            <div>
+              <button
+                aria-pressed={demoScenario === "verified"}
+                type="button"
+                onClick={() => selectDemoScenario("verified")}
+              >일치</button>
+              <button
+                aria-pressed={demoScenario === "conflict"}
+                type="button"
+                onClick={() => selectDemoScenario("conflict")}
+              >불일치 감지</button>
+            </div>
+          </nav>
+        )}
         <section className="intro" aria-labelledby="page-title">
           <h1 id="page-title">확인하고 발행 준비하기</h1>
-          <p>{verificationComplete ? "사업자 정보 확인을 완료했어요. 세금계산서 초안을 검토해 주세요." : "사업자 기본 정보를 불러왔어요. 조회 상태와 세금계산서 초안을 확인해 주세요."}</p>
+          <p>{evidenceConflictCount > 0 ? `AI가 서로 다른 정보 ${evidenceConflictCount}건을 찾았어요. 원본을 확인한 뒤 진행해 주세요.` : verificationComplete ? "사업자 정보 확인을 완료했어요. 세금계산서 초안을 검토해 주세요." : "사업자 기본 정보를 불러왔어요. 조회 상태와 세금계산서 초안을 확인해 주세요."}</p>
         </section>
 
-        <section className="verification" aria-labelledby="verification-title">
-          <h2 id="verification-title">{verificationComplete ? <CheckCircle weight="fill" /> : <Info weight="fill" />}{verificationComplete ? "사업자 확인 완료" : "사업자 확인 결과"}</h2>
+        <section className={evidenceConflictCount > 0 ? "verification verification-alert" : "verification"} aria-labelledby="verification-title">
+          <h2 id="verification-title">{evidenceConflictCount > 0 ? <WarningCircle weight="fill" /> : verificationComplete ? <CheckCircle weight="fill" /> : <Info weight="fill" />}{evidenceConflictCount > 0 ? "정보 불일치 확인 필요" : verificationComplete ? "사업자 확인 완료" : "사업자 확인 결과"}</h2>
           <dl>
             <div><dt>상호</dt><dd>{businessName}</dd></div>
             <div><dt>사업자등록번호</dt><dd>{businessNumber}</dd></div>
@@ -344,6 +508,51 @@ export function App() {
           </dl>
           <p className="source"><ShieldCheck weight="regular" />{verificationComplete ? `${businessCheck.source || "사업자 정보"} · 방금 전` : "국세청 조회를 완료하지 못했어요"}</p>
         </section>
+
+        <section className={evidenceConflictCount > 0 ? "evidence evidence-alert" : "evidence"} aria-labelledby="evidence-title">
+          <div className="evidence-heading">
+            <div>
+              <span className="evidence-kicker"><Sparkle weight="fill" />GPT‑5.6 + TalkCheck</span>
+              <h2 id="evidence-title">필드별 검증 근거</h2>
+            </div>
+            <span className={evidenceConflictCount > 0 ? "evidence-count evidence-count-alert" : "evidence-count"}>
+              {evidenceConflictCount > 0 ? `불일치 ${evidenceConflictCount}` : "충돌 없음"}
+            </span>
+          </div>
+          <p className="evidence-lead">AI가 읽은 값과 공식 조회 결과를 섞지 않고 출처별로 보여줘요.</p>
+          <div className="evidence-rows">
+            {evidenceFields.map((item) => {
+              const status = evidenceStatusMeta[item.status] || evidenceStatusMeta.missing;
+              const value = item.status === "conflict"
+                ? `${item.claimed || "없음"} ↔ ${item.extracted || "없음"}`
+                : item.official || item.extracted || item.claimed || "정보 없음";
+              return (
+                <div className="evidence-row" data-status={status.tone} key={item.field}>
+                  <div className="evidence-row-icon">
+                    {item.sources?.some((source) => source.startsWith("nts_")) ? <Database /> : <FileText />}
+                  </div>
+                  <div className="evidence-row-body">
+                    <span>{item.label}</span>
+                    <strong>{value}</strong>
+                    <small>{(item.sources || []).map((source) => sourceLabels[source] || source).join(" · ") || "출처 없음"}</small>
+                  </div>
+                  <span className="evidence-status">{status.label}</span>
+                </div>
+              );
+            })}
+          </div>
+          {evidenceConflictCount > 0 && businessCheck.clarifying_questions?.[0] && (
+            <p className="evidence-question"><WarningCircle weight="fill" />{businessCheck.clarifying_questions[0]}</p>
+          )}
+        </section>
+
+        <aside className="data-receipt" aria-label="데이터 처리 내역">
+          <LockKey weight="fill" />
+          <div>
+            <strong>데이터 처리 내역</strong>
+            <span>이미지 미보관 · 링크 30분 후 만료 · 발행 전 사용자 최종 확인</span>
+          </div>
+        </aside>
 
         <section className="invoice" aria-labelledby="invoice-title">
           <h2 id="invoice-title">세금계산서 초안</h2>
@@ -381,7 +590,7 @@ export function App() {
           )}
         </section>
 
-        <section className="confirmation">
+        {!evidenceBlocked ? <section className="confirmation">
           <label className="check-row" data-error={Boolean(errors.agreed)} tabIndex={errors.agreed ? -1 : undefined}>
             <input
               type="checkbox"
@@ -396,11 +605,24 @@ export function App() {
           </label>
           {errors.agreed && <p className="consent-error" role="alert">{errors.agreed}</p>}
           <p className="not-issued"><Info weight="regular" />아직 세금계산서가 발행되지 않았어요</p>
-        </section>
+        </section> : (
+          <section className="blocked-handoff" role="status">
+            <WarningCircle weight="fill" />
+            <p><strong>발행 준비를 잠시 멈췄어요</strong><span>불일치 값을 확인하면 초안 검토를 이어갈 수 있어요.</span></p>
+          </section>
+        )}
 
         <footer className="actions">
-          <button className="primary-button" type="submit" disabled={actionState !== "idle"}>
-            {actionState === "preparing" ? "확인 화면 준비 중" : "발행 화면으로 이동"}
+          <button
+            className={evidenceBlocked ? "primary-button review-button" : "primary-button"}
+            type={evidenceBlocked ? "button" : "submit"}
+            disabled={actionState !== "idle"}
+            onClick={evidenceBlocked ? () => {
+              if (referenceId) window.history.back();
+              else setToast(businessCheck.clarifying_questions?.[0] || "불일치 정보를 먼저 확인해 주세요.");
+            } : undefined}
+          >
+            {evidenceBlocked ? "채팅에서 불일치 확인" : actionState === "preparing" ? "확인 화면 준비 중" : "발행 화면으로 이동"}
           </button>
           <button className="secondary-button" type="button" disabled={actionState !== "idle"} onClick={leaveForLater}>나중에 하기</button>
         </footer>

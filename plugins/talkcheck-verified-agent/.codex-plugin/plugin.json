@@ -1,0 +1,28 @@
+{
+  "name": "talkcheck-verified-agent",
+  "version": "0.1.0",
+  "description": "Source-aware Korean business verification and tax invoice handoff for Codex",
+  "author": {
+    "name": "TalkCheck",
+    "url": "https://github.com/g7pnmzxpwd-bot/talkcheck"
+  },
+  "homepage": "https://github.com/g7pnmzxpwd-bot/talkcheck",
+  "repository": "https://github.com/g7pnmzxpwd-bot/talkcheck",
+  "keywords": ["business-verification", "korea", "invoice", "productivity", "mcp"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "TalkCheck Verified Agent",
+    "shortDescription": "Verify Korean businesses with visible evidence.",
+    "longDescription": "Turn a Korean business number or registration certificate into a field-level evidence report, resolve conflicts conversationally, and prepare a short-lived tax invoice confirmation handoff without automatic issuance.",
+    "developerName": "TalkCheck",
+    "category": "Productivity",
+    "capabilities": ["Official verification", "Evidence reconciliation", "Human-confirmed handoff"],
+    "websiteURL": "https://github.com/g7pnmzxpwd-bot/talkcheck",
+    "brandColor": "#079866",
+    "defaultPrompt": [
+      "이 사업자등록증의 정보와 국세청 조회 결과를 대조해 줘.",
+      "거래처 사업자 정보를 확인하고 세금계산서 초안을 준비해 줘."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

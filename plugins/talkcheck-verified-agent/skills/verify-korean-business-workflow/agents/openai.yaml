@@ -1,0 +1,15 @@
+interface:
+  display_name: "Verify Korean Business"
+  short_description: "Verify Korean businesses and prepare safe invoice handoffs"
+  default_prompt: "Use $verify-korean-business-workflow to verify this Korean business and prepare an invoice handoff."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "talkcheck"
+      description: "Official Korean business checks, evidence reconciliation, and confirmation handoffs"
+      transport: "streamable_http"
+      url: "https://talkcheck-playmcp.playmcp-endpoint.kakaocloud.io/mcp"
+
+policy:
+  allow_implicit_invocation: true
