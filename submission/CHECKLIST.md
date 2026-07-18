@@ -57,7 +57,8 @@ The repository is public under the MIT License.
 - [x] Explicitly disclose the pre-existing baseline and Build Week additions.
 - [x] Confirm all team members and eligibility details are correct.
 - [x] Save a draft and inspect the public preview before final submission.
-- [ ] Submit before the deadline and save the confirmation URL/screenshot.
+- [x] Submit before the deadline and save the confirmation URL:
+  <https://devpost.com/software/talkcheck-verified-agent>
 
 ## Final audit
 
