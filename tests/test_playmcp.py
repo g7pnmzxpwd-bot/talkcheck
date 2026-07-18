@@ -20,7 +20,16 @@ class PlayMcpCompatibilityTest(unittest.IsolatedAsyncioTestCase):
     def test_tools_include_required_annotations_without_chat_branding(self) -> None:
         tools = mcp._tool_manager.list_tools()
 
-        self.assertEqual(len(tools), 3)
+        self.assertEqual(len(tools), 4)
+        self.assertEqual(
+            {tool.name for tool in tools},
+            {
+                "check_business_registration",
+                "scan_business_certificate",
+                "reconcile_business_evidence",
+                "prepare_tax_invoice_handoff",
+            },
+        )
         for tool in tools:
             self.assertRegex(tool.name, re.compile(r"^[A-Za-z0-9_-]{1,128}$"))
             self.assertNotIn("kakao", tool.name.lower())
@@ -36,6 +45,12 @@ class PlayMcpCompatibilityTest(unittest.IsolatedAsyncioTestCase):
             self.assertIsInstance(tool.annotations.destructiveHint, bool)
             self.assertIsInstance(tool.annotations.idempotentHint, bool)
             self.assertIsInstance(tool.annotations.openWorldHint, bool)
+
+        reconcile = next(tool for tool in tools if tool.name == "reconcile_business_evidence")
+        self.assertEqual(
+            reconcile.parameters["properties"]["intent"]["enum"],
+            ["verify_only", "prepare_invoice"],
+        )
 
     def test_sdk_uses_playmcp_supported_protocol(self) -> None:
         self.assertEqual(LATEST_PROTOCOL_VERSION, "2025-11-25")

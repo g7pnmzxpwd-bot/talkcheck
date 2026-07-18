@@ -7,7 +7,7 @@ import os
 import secrets
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
@@ -141,6 +141,47 @@ async def scan_business_certificate(image_url: str = "", ocr_text: str | None = 
 
 
 @mcp.tool(
+    title="Reconcile Korean business evidence",
+    description=(
+        "사업자 확인 도우미 compares user-provided business facts with certificate fields "
+        "extracted by the host and official National Tax Service results. It reports each "
+        "field's source, conflicts, missing facts, and exact clarification questions without "
+        "producing a risk score or business recommendation."
+    ),
+    annotations=ToolAnnotations(
+        title="Reconcile Korean business evidence",
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
+)
+async def reconcile_business_evidence(
+    business_number: str,
+    claimed_business_name: str | None = None,
+    claimed_representative_name: str | None = None,
+    certificate_business_number: str | None = None,
+    certificate_business_name: str | None = None,
+    certificate_representative_name: str | None = None,
+    certificate_opening_date: str | None = None,
+    intent: Literal["verify_only", "prepare_invoice"] = "verify_only",
+) -> dict[str, Any]:
+    """Reconcile claimed, extracted, and official facts into a source-aware report."""
+    return await _run_playmcp_tool(
+        business_service.reconcile_evidence(
+            business_number=business_number,
+            claimed_business_name=claimed_business_name,
+            claimed_representative_name=claimed_representative_name,
+            certificate_business_number=certificate_business_number,
+            certificate_business_name=certificate_business_name,
+            certificate_representative_name=certificate_representative_name,
+            certificate_opening_date=certificate_opening_date,
+            intent=intent,
+        )
+    )
+
+
+@mcp.tool(
     title="Prepare tax invoice confirmation",
     description=(
         "사업자 확인 도우미 validates recipient details and creates a standard Korean tax "
@@ -172,11 +213,26 @@ async def prepare_tax_invoice_handoff(
     must be provided by the user and confirmed in the external ASP flow.
     """
     async def prepare() -> dict[str, Any]:
-        business_check = await business_service.check_number(recipient_business_number)
-        business_check["business_name"] = recipient_name.strip()
-        business_check["representative_name"] = (
-            recipient_representative_name.strip() if recipient_representative_name else None
+        evidence_report = await business_service.reconcile_evidence(
+            business_number=recipient_business_number,
+            claimed_business_name=recipient_name,
+            claimed_representative_name=recipient_representative_name,
+            intent="prepare_invoice",
         )
+        business_check = {
+            "business_name": recipient_name.strip(),
+            "representative_name": (
+                recipient_representative_name.strip() if recipient_representative_name else None
+            ),
+            "formatted_business_number": evidence_report["formatted_business_number"],
+            "official_lookup": evidence_report["official_lookup"],
+            "source": evidence_report["source"],
+            "checked_at": evidence_report["checked_at"],
+            "workflow_status": evidence_report["workflow_status"],
+            "field_results": evidence_report["field_results"],
+            "evidence_summary": evidence_report["summary"],
+            "data_handling": evidence_report["data_handling"],
+        }
         return await invoice_service.prepare_handoff(
             recipient_business_number=recipient_business_number,
             recipient_name=recipient_name,

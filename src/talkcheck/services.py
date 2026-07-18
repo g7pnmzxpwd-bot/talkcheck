@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import re
 from datetime import date, datetime, timezone
-from typing import Any
+from typing import Any, Literal
 
 from talkcheck.business_number import (
     find_business_number,
@@ -14,6 +14,7 @@ from talkcheck.business_number import (
     normalize_business_number,
 )
 from talkcheck.domain import BusinessCertificate, TaxInvoiceDraft
+from talkcheck.evidence import build_evidence_report
 from talkcheck.providers import (
     BusinessRegistryProvider,
     InvoiceHandoffProvider,
@@ -161,6 +162,11 @@ class BusinessCheckService:
             }
 
         async def verify_certificate() -> dict[str, Any]:
+            if not is_valid_business_number(certificate.business_number):
+                return {
+                    "verification_status": "not_requested",
+                    "verification_message": "유효한 사업자등록번호가 필요합니다.",
+                }
             try:
                 return await self.registry.validate_certificate(certificate)
             except ProviderNotConfigured as exc:
@@ -172,13 +178,83 @@ class BusinessCheckService:
             self.check_number(certificate.business_number),
             verify_certificate(),
         )
+        evidence_report = build_evidence_report(
+            business_number=certificate.business_number,
+            official_lookup=business_check["official_lookup"],
+            certificate_verification=certificate_verification,
+            certificate_business_number=certificate.business_number,
+            certificate_business_name=certificate.business_name,
+            certificate_representative_name=certificate.representative_name,
+            certificate_opening_date=certificate.opening_date,
+        )
         return {
             "processing_status": "extracted",
             "extracted": certificate.to_dict(),
             "business_check": business_check,
             "certificate_verification": certificate_verification,
+            "evidence_report": evidence_report,
             "checked_at": _checked_at(),
         }
+
+    async def reconcile_evidence(
+        self,
+        business_number: str,
+        claimed_business_name: str | None = None,
+        claimed_representative_name: str | None = None,
+        certificate_business_number: str | None = None,
+        certificate_business_name: str | None = None,
+        certificate_representative_name: str | None = None,
+        certificate_opening_date: str | None = None,
+        intent: Literal["verify_only", "prepare_invoice"] = "verify_only",
+    ) -> dict[str, Any]:
+        certificate = (
+            BusinessCertificate(
+                business_number=normalize_business_number(certificate_business_number),
+                business_name=certificate_business_name,
+                representative_name=certificate_representative_name,
+                opening_date=certificate_opening_date,
+            )
+            if certificate_business_number
+            else None
+        )
+
+        async def verify_certificate() -> dict[str, Any]:
+            if certificate is None:
+                return {
+                    "verification_status": "not_requested",
+                    "verification_message": "증명서 정보가 제공되지 않았습니다.",
+                }
+            if not is_valid_business_number(certificate.business_number):
+                return {
+                    "verification_status": "not_requested",
+                    "verification_message": "유효한 증명서 사업자등록번호가 필요합니다.",
+                }
+            try:
+                return await self.registry.validate_certificate(certificate)
+            except ProviderNotConfigured as exc:
+                return {"verification_status": "not_configured", "message": str(exc)}
+            except ProviderUnavailable as exc:
+                return {"verification_status": "temporarily_unavailable", "message": str(exc)}
+
+        business_check, certificate_verification = await asyncio.gather(
+            self.check_number(business_number),
+            verify_certificate(),
+        )
+        report = build_evidence_report(
+            business_number=business_number,
+            official_lookup=business_check["official_lookup"],
+            certificate_verification=certificate_verification,
+            claimed_business_name=claimed_business_name,
+            claimed_representative_name=claimed_representative_name,
+            certificate_business_number=certificate_business_number,
+            certificate_business_name=certificate_business_name,
+            certificate_representative_name=certificate_representative_name,
+            certificate_opening_date=certificate_opening_date,
+            intent=intent,
+        )
+        report["source"] = business_check["source"]
+        report["checked_at"] = business_check["checked_at"]
+        return report
 
 
 class TaxInvoiceService:
